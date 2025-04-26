@@ -1,0 +1,126 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole  @default(USER)
+  maxBench     Float?
+  maxOHP       Float?
+  maxSquat     Float?
+  maxDeadlift  Float?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  bookings     Booking[]
+  coached      Schedule[] @relation("Coach")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  COACH
+}
+
+model Program {
+  id          String          @id @default(uuid())
+  name        String
+  description String?
+  weeks       Int
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  schemes     WorkoutScheme[]
+}
+
+model WorkoutScheme {
+  id         String      @id @default(uuid())
+  programId  String
+  program    Program     @relation(fields: [programId], references: [id])
+  week       Int
+  day        Int
+  liftType   LiftType
+  sets       Int[]
+  reps       Int[]
+  percentages Float[]
+  restTime   Int         // in seconds
+  supplementalWorkouts String[] // JSON array of workout IDs
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+enum LiftType {
+  UPPER
+  LOWER
+}
+
+model SupplementalWorkout {
+  id          String      @id @default(uuid())
+  name        String
+  category    WorkoutCategory
+  bodyPart    BodyPart
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+enum WorkoutCategory {
+  UPPER
+  LOWER
+}
+
+enum BodyPart {
+  BICEPS
+  TRICEPS
+  BACK
+  SHOULDERS
+  CHEST
+  CALVES
+  QUADS
+  HAMSTRINGS
+  GLUTES
+}
+
+model Schedule {
+  id         String    @id @default(uuid())
+  date       DateTime
+  time       String    // stored as HH:MM
+  capacity   Int       @default(8)
+  currentParticipants Int @default(0)
+  coachId    String
+  coach      User      @relation("Coach", fields: [coachId], references: [id])
+  workoutType LiftType
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  bookings   Booking[]
+}
+
+model Booking {
+  id         String    @id @default(uuid())
+  scheduleId String
+  schedule   Schedule  @relation(fields: [scheduleId], references: [id])
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model WorkoutLog {
+  id         String    @id @default(uuid())
+  userId     String
+  liftType   String    // "BENCH", "OHP", "SQUAT", "DEADLIFT"
+  weight     Float
+  reps       Int
+  sets       Int
+  date       DateTime
+  notes      String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}

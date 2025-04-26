@@ -3,6 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+import * as Sentry from '@sentry/node';
 
 // Load environment variables
 dotenv.config();
@@ -20,7 +21,24 @@ import scheduleRoutes from './routes/schedule.routes';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Initialize Sentry
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  integrations: [
+    // Enable Express.js middleware tracing
+    new Sentry.Integrations.Express({ app }),
+  ],
+  // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
+  tracesSampleRate: 1.0,
+});
+
 // Middleware
+// RequestHandler creates a separate execution context, so that all errors caught
+// by Sentry also have the request data
+app.use(Sentry.Handlers.requestHandler());
+// TracingHandler creates a trace for every incoming request
+app.use(Sentry.Handlers.tracingHandler());
+
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
@@ -36,8 +54,13 @@ app.use('/api/users', userRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/schedule', scheduleRoutes);
 
+// The Sentry error handler must be before any other error middleware
+app.use(Sentry.Handlers.errorHandler());
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  // Capture exception in Sentry
+  Sentry.captureException(err);
   console.error(err.stack);
   res.status(500).json({
     error: 'Internal Server Error',

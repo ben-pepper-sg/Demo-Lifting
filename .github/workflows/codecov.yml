@@ -1,0 +1,41 @@
+name: Test and Upload Coverage
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      # Client tests
+      - name: Install client dependencies
+        run: cd client && npm ci
+      - name: Run client tests with coverage
+        run: cd client && npm run test:coverage
+
+      # Server tests
+      - name: Install server dependencies
+        run: cd server && npm ci
+      - name: Run server tests with coverage
+        run: cd server && npm run test:coverage
+
+      # Upload coverage to CodeCov
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./client/coverage/coverage-final.json,./server/coverage/coverage-final.json
+          flags: client,server
+          name: codecov-umbrella
+          fail_ci_if_error: true
+          verbose: true

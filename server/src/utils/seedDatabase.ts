@@ -151,7 +151,12 @@ async function seedDatabase() {
       for (const bodyPart of Object.values(category)) {
         for (const exercise of bodyPart) {
           await prisma.supplementalWorkout.create({
-            data: exercise,
+            data: {
+              name: exercise.name,
+              category: exercise.category as any, // Convert string to enum
+              bodyPart: exercise.bodyPart as any, // Convert string to enum
+              description: ''
+            },
           });
         }
       }
@@ -253,7 +258,7 @@ async function seedDatabase() {
     const adminUser = await prisma.user.create({
       data: {
         email: 'admin@example.com',
-        passwordHash: await bcrypt(10).hash('admin123'),
+        passwordHash: await bcrypt.hash('admin123', 10),
         firstName: 'Admin',
         lastName: 'User',
         role: 'ADMIN',
@@ -330,7 +335,7 @@ function selectSupplementalWorkouts(exercises: any[], week: number, day: number)
 }
 
 // Import bcrypt for password hashing
-import * as bcrypt from 'bcrypt';
+import bcrypt from 'bcrypt';
 
 // Run the seeding function
 seedDatabase()

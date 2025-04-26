@@ -1,6 +1,81 @@
 # TFW MMA Lifting Program
 
+[![codecov](https://codecov.io/gh/YOUR_USERNAME/tfwmma_lifting/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/YOUR_USERNAME/tfwmma_lifting)
+
+## Overview
 A full-stack web application for managing an 8-week weightlifting program. The application allows users to sign up for lifting sessions, track their progress, and view their workout plans.
+
+## Development
+
+### Client
+```bash
+cd client
+npm install
+npm start
+```
+
+### Server
+```bash
+cd server
+npm install
+npm run dev
+```
+
+## Testing
+
+This project includes a comprehensive testing suite with unit tests, integration tests, and end-to-end tests.
+
+### Client Testing
+
+```bash
+cd client
+# Run all tests
+npm test
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run accessibility tests
+npm run test:a11y
+
+# Run end-to-end tests with Cypress UI
+npm run test:e2e
+
+# Run end-to-end tests headlessly
+npm run test:e2e:headless
+```
+
+### Server Testing
+
+```bash
+cd server
+# Run all tests
+npm test
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run only integration tests
+npm run test:integration
+
+# Run only unit tests
+npm run test:unit
+```
+
+### Test Structure
+
+#### Client Tests
+- **Unit Tests**: Test individual components and hooks in isolation
+- **Integration Tests**: Test the interaction between multiple components
+- **End-to-End Tests**: Test the complete user flow using Cypress
+- **Accessibility Tests**: Verify application meets accessibility standards using jest-axe
+
+#### Server Tests
+- **Unit Tests**: Test individual functions and middleware
+- **Integration Tests**: Test API endpoints with mock database and authentication
 
 ## Features
 
