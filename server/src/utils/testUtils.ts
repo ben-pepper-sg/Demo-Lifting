@@ -49,7 +49,9 @@ export const createTestApp = (router: express.Router) => {
 // Create authenticated request
 export const authenticatedRequest = (app: express.Application, userId: string, isAdmin: boolean = false) => {
   const token = generateTestToken(userId, isAdmin);
-  return request(app).set('Authorization', `Bearer ${token}`);
+  const req = request(app);
+  // @ts-ignore
+  return req.set('Authorization', `Bearer ${token}`);
 };
 
 // Test data generators

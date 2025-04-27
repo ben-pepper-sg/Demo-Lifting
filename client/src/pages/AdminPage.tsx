@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { userService, scheduleService } from '../services/api';
+import * as Sentry from '@sentry/react';
 
 type User = {
   id: string;
@@ -43,7 +44,20 @@ const AdminPage: React.FC = () => {
       const response = await userService.getAllUsers();
       setUsers(response.data.users);
     } catch (err: any) {
-      setErrorUsers(err.response?.data?.error || 'Failed to fetch users');
+      const errorMessage = err.response?.data?.error || 'Failed to fetch users';
+      setErrorUsers(errorMessage);
+      
+      // Log error to Sentry with context
+      Sentry.captureException(err, {
+        tags: {
+          component: 'AdminPage',
+          action: 'fetchUsers'
+        },
+        extra: {
+          userId: user?.id,
+          userRole: user?.role
+        }
+      });
     } finally {
       setIsLoadingUsers(false);
     }
@@ -69,11 +83,29 @@ const AdminPage: React.FC = () => {
         return;
       }
       
+      // Create transaction for better error tracking
+      const transaction = Sentry.startTransaction({
+        name: 'createSchedule',
+        op: 'admin.schedule.create'
+      });
+      
+      Sentry.configureScope(scope => {
+        scope.setSpan(transaction);
+        scope.setContext('scheduleData', {
+          ...scheduleForm,
+          coachId,
+          adminId: user?.id
+        });
+      });
+      
       await scheduleService.createSchedule({
         ...scheduleForm,
         coachId,
         capacity: parseInt(scheduleForm.capacity.toString()),
       });
+      
+      // Mark the transaction as successful
+      transaction.finish();
       
       setSuccessMessage('Schedule created successfully');
       
@@ -86,7 +118,22 @@ const AdminPage: React.FC = () => {
         capacity: 8,
       });
     } catch (err: any) {
-      setErrorSchedule(err.response?.data?.error || 'Failed to create schedule');
+      const errorMessage = err.response?.data?.error || 'Failed to create schedule';
+      setErrorSchedule(errorMessage);
+      
+      // Log detailed error to Sentry
+      Sentry.captureException(err, {
+        tags: {
+          component: 'AdminPage',
+          action: 'createSchedule',
+          workoutType: scheduleForm.workoutType
+        },
+        extra: {
+          scheduleForm,
+          userId: user?.id,
+          userRole: user?.role
+        }
+      });
     } finally {
       setIsLoadingSchedule(false);
     }

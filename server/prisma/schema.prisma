@@ -108,6 +108,7 @@ model Booking {
   schedule   Schedule  @relation(fields: [scheduleId], references: [id])
   userId     String
   user       User      @relation(fields: [userId], references: [id])
+  workoutType LiftType?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }

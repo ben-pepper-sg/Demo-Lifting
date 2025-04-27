@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
+import * as Sentry from '@sentry/node';
 
 // Get all schedule entries
 export const getAllSchedules = async (req: Request, res: Response) => {
@@ -87,25 +88,83 @@ export const createSchedule = async (req: Request, res: Response) => {
 
 // Book a time slot
 export const bookTimeSlot = async (req: Request, res: Response) => {
+  // Create a transaction for Sentry monitoring
+  const transaction = Sentry.startTransaction({
+    name: 'bookTimeSlot',
+    op: 'controller',
+  });
+  
+  // Set transaction tags
+  transaction.setTag('controller', 'schedule');
+  transaction.setTag('endpoint', 'bookTimeSlot');
+  
   try {
     const userId = req.user?.userId;
     const { scheduleId } = req.params;
+    const { workoutType } = req.body; // Get the selected workout type if provided
+    
+    // Set context for Sentry
+    Sentry.setContext('booking_request', {
+      userId,
+      scheduleId,
+      workoutType,
+    });
     
     if (!userId) {
+      transaction.setStatus('user_error');
+      transaction.finish();
       return res.status(401).json({ error: 'User not authenticated' });
     }
     
     // Check if schedule exists and has available spots
+    const span = transaction.startChild({
+      op: 'db.query',
+      description: 'Find schedule',
+    });
+    
     const schedule = await prisma.schedule.findUnique({
       where: { id: scheduleId },
     });
     
+    span.finish();
+    
     if (!schedule) {
+      transaction.setStatus('not_found');
+      transaction.finish();
       return res.status(404).json({ error: 'Schedule not found' });
     }
     
     if (schedule.currentParticipants >= schedule.capacity) {
+      transaction.setStatus('resource_exhausted');
+      transaction.finish();
       return res.status(400).json({ error: 'No available spots' });
+    }
+    
+    // Check if it's a Friday or Saturday (5 = Friday, 6 = Saturday)
+    const scheduleDate = new Date(schedule.date);
+    const dayOfWeek = scheduleDate.getDay();
+    const isFridayOrSaturday = dayOfWeek === 5 || dayOfWeek === 6;
+    
+    // Validate workout type selection for Friday/Saturday
+    if (isFridayOrSaturday && !workoutType) {
+      transaction.setStatus('invalid_argument');
+      transaction.finish();
+      return res.status(400).json({ 
+        error: 'Please select a workout type (Upper or Lower) for Friday/Saturday sessions',
+        requiresWorkoutType: true,
+        dayOfWeek
+      });
+    }
+    
+    // For Friday/Saturday, validate the workout type is either UPPER or LOWER
+    if (isFridayOrSaturday && workoutType && !['UPPER', 'LOWER'].includes(workoutType)) {
+      transaction.setStatus('invalid_argument');
+      transaction.finish();
+      return res.status(400).json({ 
+        error: 'Invalid workout type. Must be either UPPER or LOWER',
+        requiresWorkoutType: true,
+        dayOfWeek
+      });
     }
     
     // Check if user already booked this slot
@@ -121,11 +180,18 @@ export const bookTimeSlot = async (req: Request, res: Response) => {
     }
     
     // Create booking and update schedule participants count
+    const bookingSpan = transaction.startChild({
+      op: 'db.transaction',
+      description: 'Create booking',
+    });
+    
     const booking = await prisma.$transaction(async (prisma) => {
       const newBooking = await prisma.booking.create({
         data: {
           scheduleId,
           userId,
+          // Add workoutType if it's Friday/Saturday
+          ...(isFridayOrSaturday ? { workoutType } : {}),
         },
         include: {
           user: {
@@ -139,6 +205,8 @@ export const bookTimeSlot = async (req: Request, res: Response) => {
         },
       });
       
+      bookingSpan.finish();
+      
       await prisma.schedule.update({
         where: { id: scheduleId },
         data: {
@@ -151,12 +219,35 @@ export const bookTimeSlot = async (req: Request, res: Response) => {
       return newBooking;
     });
     
+    // Set transaction status to success and complete it
+    transaction.setStatus('ok');
+    transaction.finish();
+    
     return res.status(200).json({
       message: 'Time slot booked successfully',
       booking,
+      workoutTypeSelected: isFridayOrSaturday ? workoutType : schedule.workoutType,
     });
   } catch (error) {
     console.error('Book time slot error:', error);
+    
+    // Capture the error with context in Sentry
+    Sentry.captureException(error, {
+      tags: {
+        section: 'schedule_controller',
+        operation: 'bookTimeSlot',
+      },
+      extra: {
+        scheduleId: req.params.scheduleId,
+        userId: req.user?.userId,
+        workoutType: req.body?.workoutType,
+      },
+    });
+    
+    // Set transaction status to error and complete it
+    transaction.setStatus('internal_error');
+    transaction.finish();
+    
     return res.status(500).json({ error: 'Failed to book time slot' });
   }
 };

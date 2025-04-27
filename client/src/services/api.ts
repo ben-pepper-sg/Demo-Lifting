@@ -62,7 +62,7 @@ export const workoutService = {
 export const scheduleService = {
   getAllSchedules: (params?: any) => api.get('/schedule', { params }),
   createSchedule: (scheduleData: any) => api.post('/schedule', scheduleData),
-  bookTimeSlot: (scheduleId: string) => api.post(`/schedule/${scheduleId}/book`),
+  bookTimeSlot: (scheduleId: string, workoutType?: string) => api.post(`/schedule/${scheduleId}/book`, workoutType ? { workoutType } : {}),
   cancelBooking: (scheduleId: string) => api.delete(`/schedule/${scheduleId}/book`),
   getClassDetails: () => api.get('/schedule/class'),
 };

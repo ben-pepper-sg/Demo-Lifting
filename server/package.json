@@ -14,24 +14,10 @@
     "test:unit": "jest --testMatch='**/?(*.)+(unit).[jt]s?(x)'",
     "seed": "ts-node src/utils/seedDatabase.ts"
   },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node",
-    "collectCoverageFrom": [
-      "src/**/*.{js,ts}",
-      "!src/**/*.d.ts",
-      "!**/node_modules/**"
-    ],
-    "coverageReporters": [
-      "json",
-      "lcov",
-      "text",
-      "clover"
-    ]
-  },
   "dependencies": {
     "@prisma/client": "^5.5.2",
     "@sentry/node": "^9.14.0",
+    "@sentry/types": "^9.14.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

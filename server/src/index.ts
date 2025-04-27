@@ -48,11 +48,15 @@ app.get('/', (req, res) => {
   res.json({ message: 'TFW MMA Lifting API' });
 });
 
+// Import admin routes
+import adminRoutes from './routes/admin.routes';
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/schedule', scheduleRoutes);
+app.use('/api/admin', adminRoutes);
 
 // The Sentry error handler must be before any other error middleware
 app.use(Sentry.Handlers.errorHandler());
