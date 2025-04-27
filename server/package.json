@@ -1,7 +1,7 @@
 {
   "name": "tfwmma-lifting-server",
   "version": "1.0.0",
-  "description": "Backend for TFW MMA Lifting Program",
+  "description": "Backend for TFW MMA Lifting Program with Sentry monitoring",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
