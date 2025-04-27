@@ -2,10 +2,22 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { prisma } from '../index';
 
-// Get all users (admin only)
+// Get all users (admin only) with optional search
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
+    const { search } = req.query;
+    
+    // Build query with optional search filter
+    const whereCondition = search ? {
+      OR: [
+        { email: { contains: String(search), mode: "insensitive" as const } },
+        { firstName: { contains: String(search), mode: "insensitive" as const } },
+        { lastName: { contains: String(search), mode: "insensitive" as const } },
+      ],
+    } : {};
+    
     const users = await prisma.user.findMany({
+      where: whereCondition,
       select: {
         id: true,
         email: true,

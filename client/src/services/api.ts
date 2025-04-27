@@ -42,7 +42,7 @@ export const authService = {
 
 // User services
 export const userService = {
-  getAllUsers: () => api.get('/users'),
+  getAllUsers: (params?: any) => api.get('/users', { params }),
   getUserById: (id: string) => api.get(`/users/${id}`),
   updateUser: (id: string, userData: any) => api.put(`/users/${id}`, userData),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
