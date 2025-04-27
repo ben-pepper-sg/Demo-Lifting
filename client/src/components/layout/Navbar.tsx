@@ -32,17 +32,23 @@ const Navbar: React.FC = () => {
                   {user && (
                     <>
                       <Link
-                        to="/dashboard"
-                        className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
+                      to="/dashboard"
+                      className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
                       >
-                        Dashboard
+                      Dashboard
                       </Link>
                       <Link
-                        to="/schedule"
-                        className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
+                      to="/schedule"
+                      className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
                       >
-                        Schedule
+                      Schedule
                       </Link>
+                        <Link
+                          to="/progress"
+                          className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
+                        >
+                          Lift Progress
+                        </Link>
                     </>
                   )}
                   <Link
@@ -191,6 +197,13 @@ const Navbar: React.FC = () => {
                     className="text-white block px-3 py-2 rounded-md text-base font-medium"
                   >
                     Schedule
+                  </Disclosure.Button>
+                  <Disclosure.Button
+                    as={Link}
+                    to="/progress"
+                    className="text-white block px-3 py-2 rounded-md text-base font-medium"
+                  >
+                    Lift Progress
                   </Disclosure.Button>
                 </>
               )}

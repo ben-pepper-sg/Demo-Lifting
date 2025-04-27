@@ -5,6 +5,7 @@ import {
   updateMaxLifts,
   getWorkoutScheme,
   calculateLiftWeight,
+  getLiftProgression,
 } from '../controllers/workout.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
@@ -24,5 +25,8 @@ router.get('/scheme', getWorkoutScheme);
 
 // Calculate weight for a lift
 router.get('/calculate', authenticate, calculateLiftWeight);
+
+// Get lift progression data over time
+router.get('/progression', authenticate, getLiftProgression);
 
 export default router;

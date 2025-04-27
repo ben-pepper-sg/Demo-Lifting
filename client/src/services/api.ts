@@ -55,6 +55,7 @@ export const workoutService = {
   logWorkout: (workoutData: any) => api.post('/workouts', workoutData),
   getWorkoutScheme: (params: any) => api.get('/workouts/scheme', { params }),
   calculateWeight: (params: any) => api.get('/workouts/calculate', { params }),
+  getLiftProgression: (params: any) => api.get('/workouts/progression', { params }),
 };
 
 // Schedule services

@@ -10,6 +10,7 @@ import SchedulePage from './pages/SchedulePage';
 import ProfilePage from './pages/ProfilePage';
 import ClassViewPage from './pages/ClassViewPage';
 import AdminPage from './pages/AdminPage';
+import LiftProgressPage from './pages/LiftProgressPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
 
@@ -36,6 +37,11 @@ function App() {
           <Route path="profile" element={
             <ProtectedRoute>
               <ProfilePage />
+            </ProtectedRoute>
+          } />
+          <Route path="progress" element={
+            <ProtectedRoute>
+              <LiftProgressPage />
             </ProtectedRoute>
           } />
           
