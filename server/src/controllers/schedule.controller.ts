@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
 import * as Sentry from '@sentry/node';
+import { startTransaction } from '@sentry/node';
 
 // Get all schedule entries
 export const getAllSchedules = async (req: Request, res: Response) => {
@@ -89,7 +90,7 @@ export const createSchedule = async (req: Request, res: Response) => {
 // Book a time slot
 export const bookTimeSlot = async (req: Request, res: Response) => {
   // Create a transaction for Sentry monitoring
-  const transaction = Sentry.startTransaction({
+  const transaction = startTransaction({
     name: 'bookTimeSlot',
     op: 'controller',
   });

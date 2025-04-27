@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { workoutService } from '../services/api';
 import LiftChart from '../components/lifts/LiftChart';
 import * as Sentry from '@sentry/react';
+import { startTransaction } from '@sentry/browser';
 
 const LiftProgressPage: React.FC = () => {
   const { user } = useAuth();
@@ -24,7 +25,7 @@ const LiftProgressPage: React.FC = () => {
     
     try {
       // Add Sentry transaction for performance monitoring
-      const transaction = Sentry.startTransaction({
+      const transaction = startTransaction({
         name: 'fetch-lift-progression',
         op: 'data-fetch',
       });

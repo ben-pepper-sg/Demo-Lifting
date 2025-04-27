@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
 import * as Sentry from '@sentry/node';
+import { startTransaction } from '@sentry/node';
 
 // Get all workouts for a specific user
 export const getUserWorkouts = async (req: Request, res: Response) => {
   // Start a Sentry transaction for performance monitoring
-  const transaction = Sentry.startTransaction({
+  const transaction = startTransaction({
     name: 'getUserWorkouts',
     op: 'controller',
   });
@@ -242,7 +243,7 @@ export const calculateLiftWeight = async (req: Request, res: Response) => {
 // Get lift progression over time
 export const getLiftProgression = async (req: Request, res: Response) => {
   // Start a Sentry transaction for performance monitoring
-  const transaction = Sentry.startTransaction({
+  const transaction = startTransaction({
     name: 'getLiftProgression',
     op: 'controller',
   });

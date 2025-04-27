@@ -15,15 +15,16 @@ jest.mock('../services/api', () => ({
     createSchedule: jest.fn(),
   },
 }));
+// Mock Sentry modules
 jest.mock('@sentry/react', () => ({
   captureException: jest.fn(),
+  setContext: jest.fn()
+}));
+
+jest.mock('@sentry/browser', () => ({
   startTransaction: jest.fn(() => ({
     finish: jest.fn(),
-    setStatus: jest.fn(),
-  })),
-  configureScope: jest.fn((cb) => cb({
-    setSpan: jest.fn(),
-    setContext: jest.fn(),
+    setStatus: jest.fn()
   })),
 }));
 
@@ -55,10 +56,18 @@ describe('AdminPage', () => {
           { id: '2', role: 'USER', email: 'user@test.com', firstName: 'Regular', lastName: 'User', maxBench: null, maxOHP: null, maxSquat: null, maxDeadlift: null },
         ],
       },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {}
     });
     
     mockCreateSchedule.mockResolvedValue({
       data: { message: 'Schedule created successfully' },
+      status: 201,
+      statusText: 'Created',
+      headers: {},
+      config: {}
     });
   });
 
@@ -98,8 +107,8 @@ describe('AdminPage', () => {
     fireEvent.change(dateInput, { target: { value: '2025-05-01' } });
     
     // Mock the API error
-    const error = new Error('Failed to create schedule');
-    error.response = { data: { error: 'Invalid schedule data' } };
+    const error = new Error('Failed to create schedule') as any;
+    error.response = { data: { error: 'Invalid schedule data' }, status: 400 };
     mockCreateSchedule.mockRejectedValue(error);
     
     // Submit the form

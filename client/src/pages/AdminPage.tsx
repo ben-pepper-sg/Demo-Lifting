@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { userService, scheduleService } from '../services/api';
 import * as Sentry from '@sentry/react';
+import { startTransaction } from '@sentry/browser';
+import { getCurrentHub } from '@sentry/browser';
 
 type User = {
   id: string;
@@ -84,18 +86,16 @@ const AdminPage: React.FC = () => {
       }
       
       // Create transaction for better error tracking
-      const transaction = Sentry.startTransaction({
+      const transaction = startTransaction({
         name: 'createSchedule',
         op: 'admin.schedule.create'
       });
       
-      Sentry.configureScope(scope => {
-        scope.setSpan(transaction);
-        scope.setContext('scheduleData', {
-          ...scheduleForm,
-          coachId,
-          adminId: user?.id
-        });
+      // Set transaction context
+      Sentry.setContext('scheduleData', {
+        ...scheduleForm,
+        coachId,
+        adminId: user?.id
       });
       
       await scheduleService.createSchedule({

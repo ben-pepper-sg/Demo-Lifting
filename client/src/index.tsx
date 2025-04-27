@@ -5,13 +5,15 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
+import { BrowserTracing } from '@sentry/browser';
+import { Replay } from '@sentry/replay';
 
 // Initialize Sentry
 Sentry.init({
   dsn: process.env.REACT_APP_SENTRY_DSN,
   integrations: [
-    new Sentry.BrowserTracing(),
-    new Sentry.Replay(),
+    new BrowserTracing(),
+    new Replay(),
   ],
   // Performance Monitoring
   tracesSampleRate: 1.0, // Capture 100% of transactions, reduce in production

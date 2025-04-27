@@ -4,6 +4,8 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
 import * as Sentry from '@sentry/node';
+import { ProfilingIntegration } from '@sentry/profiling-node';
+import { Express } from '@sentry/integrations';
 
 // Load environment variables
 dotenv.config();
@@ -26,10 +28,13 @@ Sentry.init({
   dsn: process.env.SENTRY_DSN,
   integrations: [
     // Enable Express.js middleware tracing
-    new Sentry.Integrations.Express({ app }),
+    new Express({ app }),
+    new ProfilingIntegration(),
   ],
   // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
   tracesSampleRate: 1.0,
+  // Enable profiling
+  profilesSampleRate: 1.0,
 });
 
 // Middleware

@@ -70,6 +70,7 @@
     ]
   },
   "devDependencies": {
+    "@types/jest-axe": "^3.5.9",
     "autoprefixer": "^10.4.16",
     "cypress": "^13.3.0",
     "jest-axe": "^8.0.0",
