@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { userService, scheduleService } from '../services/api';
 import * as Sentry from '@sentry/react';
-import { startTransaction } from '@sentry/browser';
-import { getCurrentHub } from '@sentry/browser';
+import { getCurrentHub } from '@sentry/react';
 
 type User = {
   id: string;
@@ -86,7 +85,7 @@ const AdminPage: React.FC = () => {
       }
       
       // Create transaction for better error tracking
-      const transaction = startTransaction({
+      const transaction = Sentry.startTransaction({
         name: 'createSchedule',
         op: 'admin.schedule.create'
       });

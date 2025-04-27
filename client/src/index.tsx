@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
-import { BrowserTracing } from '@sentry/browser';
+import { BrowserTracing } from '@sentry/tracing';
 import { Replay } from '@sentry/replay';
 
 // Initialize Sentry

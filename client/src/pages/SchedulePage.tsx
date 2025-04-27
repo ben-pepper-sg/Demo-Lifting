@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { scheduleService } from '../services/api';
 import * as Sentry from '@sentry/react';
-import { startTransaction } from '@sentry/browser';
 
 type Schedule = {
   id: string;
@@ -39,7 +38,7 @@ const SchedulePage: React.FC = () => {
 
   const fetchSchedules = async () => {
     // Create a transaction for Sentry performance monitoring
-    const transaction = startTransaction({
+    const transaction = Sentry.startTransaction({
       name: 'fetch_schedules',
       op: 'data-fetch',
     });
@@ -92,7 +91,7 @@ const SchedulePage: React.FC = () => {
 
   const handleBookSession = async (scheduleId: string) => {
     // Start a Sentry transaction for performance monitoring
-    const transaction = startTransaction({
+    const transaction = Sentry.startTransaction({
       name: 'book_session',
       op: 'user-action',
     });
@@ -172,7 +171,7 @@ const SchedulePage: React.FC = () => {
   // Handle confirmation of workout type selection
   const handleConfirmWorkoutType = async () => {
     // Start a Sentry transaction for performance monitoring
-    const transaction = startTransaction({
+    const transaction = Sentry.startTransaction({
       name: 'confirm_workout_type',
       op: 'user-action',
     });
@@ -222,7 +221,7 @@ const SchedulePage: React.FC = () => {
 
   const handleCancelBooking = async (scheduleId: string) => {
     // Create a transaction for Sentry performance monitoring
-    const transaction = startTransaction({
+    const transaction = Sentry.startTransaction({
       name: 'cancel_booking',
       op: 'user-action',
     });
