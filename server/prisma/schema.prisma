@@ -108,7 +108,7 @@ model Booking {
   schedule   Schedule  @relation(fields: [scheduleId], references: [id])
   userId     String
   user       User      @relation(fields: [userId], references: [id])
-  workoutType LiftType?
+  workoutType LiftType? // Added for Friday/Saturday workout selection
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
