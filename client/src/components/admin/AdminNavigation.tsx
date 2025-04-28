@@ -24,6 +24,12 @@ const AdminNavigation: React.FC = () => {
         >
           Default Schedules
         </Link>
+        <Link 
+          to="/admin/supplemental-workouts"
+          className={`px-4 py-2 rounded ${isActive('/admin/supplemental-workouts') ? 'bg-indigo-600 text-white' : 'bg-white hover:bg-gray-200'}`}
+        >
+          Supplemental Workouts
+        </Link>
       </div>
     </div>
   );

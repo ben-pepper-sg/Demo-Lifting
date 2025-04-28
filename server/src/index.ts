@@ -17,6 +17,7 @@ import userRoutes from './routes/user.routes';
 import workoutRoutes from './routes/workout.routes';
 import scheduleRoutes from './routes/schedule.routes';
 import defaultScheduleRoutes from './routes/defaultSchedule.routes';
+import supplementalWorkoutRoutes from './routes/supplementalWorkout.routes';
 
 // Initialize Express app
 const app = express();
@@ -45,6 +46,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/schedule', scheduleRoutes);
 app.use('/api/default-schedule', defaultScheduleRoutes);
+app.use('/api/supplemental-workouts', supplementalWorkoutRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Error handler middleware removed

@@ -12,6 +12,7 @@ import ProfilePage from './pages/ProfilePage';
 import ClassViewPage from './pages/ClassViewPage';
 import AdminPage from './pages/AdminPage';
 import DefaultScheduleAdminPage from './pages/DefaultScheduleAdminPage';
+import SupplementalWorkoutAdminPage from './pages/SupplementalWorkoutAdminPage';
 import LiftProgressPage from './pages/LiftProgressPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
@@ -64,6 +65,11 @@ function App() {
           <Route path="admin/default-schedule" element={
             <AdminRoute>
               <DefaultScheduleAdminPage />
+            </AdminRoute>
+          } />
+          <Route path="admin/supplemental-workouts" element={
+            <AdminRoute>
+              <SupplementalWorkoutAdminPage />
             </AdminRoute>
           } />
         </Route>
