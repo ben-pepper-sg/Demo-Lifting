@@ -7,12 +7,33 @@ export const getAllSchedules = async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
     
+    console.log('[GET /schedule] Query params:', { startDate, endDate });
+
+    // Parse date ranges directly from strings to avoid timezone issues
+    let startDateObj: Date | null = null;
+    let endDateObj: Date | null = null;
+    
+    if (startDate && typeof startDate === 'string') {
+      const parts: number[] = startDate.split('T')[0].split('-').map(p => parseInt(p));
+      startDateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 0, 0, 0));
+    }
+    
+    if (endDate && typeof endDate === 'string') {
+      const parts: number[] = endDate.split('T')[0].split('-').map(p => parseInt(p));
+      endDateObj = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2], 23, 59, 59));
+    }
+    
+    console.log('Date range for query:', { 
+      startDate: startDateObj?.toISOString(),
+      endDate: endDateObj?.toISOString()
+    });
+    
     const schedules = await prisma.schedule.findMany({
       where: {
-        ...(startDate && endDate ? {
+        ...(startDateObj && endDateObj ? {
           date: {
-            gte: new Date(String(startDate)),
-            lte: new Date(String(endDate)),
+            gte: startDateObj,
+            lte: endDateObj,
           },
         } : {}),
       },
@@ -57,9 +78,35 @@ export const createSchedule = async (req: Request, res: Response) => {
   try {
     const { date, time, capacity, coachId, workoutType } = req.body;
     
+    console.log('Creating schedule with raw date:', date);
+    
+    // Parse the date value - ensuring we preserve the exact day specified
+    // For example, if date is '2025-04-28' or '2025-04-28T00:00:00.000Z'
+    let parts: number[] = [];
+    if (typeof date === 'string') {
+      if (date.includes('T')) {
+        parts = date.split('T')[0].split('-').map(p => parseInt(p));
+      } else {
+        parts = date.split('-').map(p => parseInt(p));
+      }
+    }
+    
+    console.log('Date parts:', parts);
+    
+    // Use date parts directly to create the date - avoiding any timezone conversion
+    // Months are 0-indexed in JavaScript Date object
+    const normalizedDate = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+    
+    console.log('Creating schedule with normalized date:', {
+      rawDate: date,
+      normalizedDate,
+      isoString: normalizedDate.toISOString(),
+      localDate: normalizedDate.toString()
+    });
+    
     const schedule = await prisma.schedule.create({
       data: {
-        date: new Date(date),
+        date: normalizedDate,
         time,
         capacity: capacity || 8,
         coachId,
@@ -344,6 +391,43 @@ export const getClassDetails = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Workout scheme not found for this week and day' });
     }
     
+    // Get weekly supplemental workouts based on the current week number
+    // This ensures the same supplemental workouts are used all week, but change every Monday
+    
+    // Find the start of the current week (Monday)
+    const currentDate = new Date();
+    const daysSinceMonday = (currentDate.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - daysSinceMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    // Use the Monday date as a seed for selecting supplemental workouts
+    // This ensures consistency within the week
+    const mondayTimestamp = startOfWeek.getTime();
+    const weekIdentifier = Math.floor(mondayTimestamp / (7 * 24 * 60 * 60 * 1000));
+    
+    // Get appropriate supplemental workouts for this week and workout type
+    const supplementalWorkouts = await prisma.supplementalWorkout.findMany({
+      where: {
+        category: schedule.workoutType
+      },
+      orderBy: {
+        id: 'asc'
+      }
+    });
+    
+    // Select 2-3 supplemental workouts based on the week number
+    // Use modulo to cycle through all available supplemental workouts over time
+    // This ensures every week has different supplemental workouts
+    const supplementals = [];
+    if (supplementalWorkouts.length > 0) {
+      const numWorkouts = Math.min(3, supplementalWorkouts.length);
+      for (let i = 0; i < numWorkouts; i++) {
+        const index = (weekIdentifier + i) % supplementalWorkouts.length;
+        supplementals.push(supplementalWorkouts[index]);
+      }
+    }
+    
     // Prepare class details with participant information
     const participants = schedule.bookings.map((booking) => {
       const user = booking.user;
@@ -395,6 +479,7 @@ export const getClassDetails = async (req: Request, res: Response) => {
           percentages: workoutScheme.percentages,
           restTime: workoutScheme.restTime,
         },
+        supplementalWorkouts: supplementals,
       },
     });
   } catch (error) {

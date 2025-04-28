@@ -13,6 +13,14 @@ type ClassParticipant = {
   };
 };
 
+type SupplementalWorkout = {
+  id: string;
+  name: string;
+  category: 'UPPER' | 'LOWER';
+  bodyPart: string;
+  description?: string;
+};
+
 type ClassDetails = {
   id: string;
   date: string;
@@ -25,6 +33,7 @@ type ClassDetails = {
     percentages: number[];
     restTime: number;
   };
+  supplementalWorkouts: SupplementalWorkout[];
 };
 
 const ClassViewPage: React.FC = () => {
@@ -123,6 +132,27 @@ const ClassViewPage: React.FC = () => {
               <p><strong>Percentages:</strong> {classDetails.scheme.percentages.map(p => p + '%').join(', ')}</p>
               <p><strong>Rest Time:</strong> {classDetails.scheme.restTime / 60} minutes</p>
             </div>
+            
+            {classDetails.supplementalWorkouts && classDetails.supplementalWorkouts.length > 0 && (
+              <div className="bg-blue-50 p-4 rounded-md mb-6">
+                <h3 className="font-semibold mb-3">This Week's Supplemental Workouts</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {classDetails.supplementalWorkouts.map(workout => (
+                    <div key={workout.id} className="bg-white p-4 rounded shadow-sm border border-blue-100">
+                      <h4 className="font-medium text-lg mb-1">{workout.name}</h4>
+                      <div className="flex items-center mb-2">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded mr-2">
+                          {workout.bodyPart}
+                        </span>
+                      </div>
+                      {workout.description && (
+                        <p className="text-sm text-gray-600">{workout.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             
             <h3 className="text-xl font-semibold mb-4">Class Participants</h3>
             
