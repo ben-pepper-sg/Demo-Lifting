@@ -244,6 +244,45 @@ export const cancelBooking = async (req: Request, res: Response) => {
   }
 };
 
+// Delete a schedule (admin/coach only)
+export const deleteSchedule = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Check if schedule exists
+    const schedule = await prisma.schedule.findUnique({
+      where: { id },
+      include: {
+        bookings: true,
+      },
+    });
+    
+    if (!schedule) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+    
+    // Delete all bookings related to this schedule and then delete the schedule
+    await prisma.$transaction(async (prisma) => {
+      // Delete all bookings first
+      await prisma.booking.deleteMany({
+        where: { scheduleId: id },
+      });
+      
+      // Then delete the schedule
+      await prisma.schedule.delete({
+        where: { id },
+      });
+    });
+    
+    return res.status(200).json({
+      message: 'Schedule deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete schedule error:', error);
+    return res.status(500).json({ error: 'Failed to delete schedule' });
+  }
+};
+
 // Get class details for the next hour
 export const getClassDetails = async (req: Request, res: Response) => {
   try {

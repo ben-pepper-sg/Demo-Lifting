@@ -5,6 +5,7 @@ import {
   bookTimeSlot,
   cancelBooking,
   getClassDetails,
+  deleteSchedule,
 } from '../controllers/schedule.controller';
 import { authenticate, authorizeAdmin, authorizeCoach } from '../middleware/auth.middleware';
 
@@ -24,5 +25,8 @@ router.delete('/:scheduleId/book', authenticate, cancelBooking);
 
 // Get class details for the next hour
 router.get('/class', getClassDetails);
+
+// Delete a schedule (admin/coach only)
+router.delete('/:id', authenticate, authorizeCoach, deleteSchedule);
 
 export default router;

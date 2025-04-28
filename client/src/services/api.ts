@@ -65,6 +65,7 @@ export const scheduleService = {
   bookTimeSlot: (scheduleId: string, workoutType?: string) => api.post(`/schedule/${scheduleId}/book`, workoutType ? { workoutType } : {}),
   cancelBooking: (scheduleId: string) => api.delete(`/schedule/${scheduleId}/book`),
   getClassDetails: () => api.get('/schedule/class'),
+  deleteSchedule: (id: string) => api.delete(`/schedule/${id}`),
 };
 
 export default {

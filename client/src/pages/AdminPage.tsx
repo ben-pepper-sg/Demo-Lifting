@@ -23,6 +23,12 @@ const AdminPage: React.FC = () => {
   const [errorUsers, setErrorUsers] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState<string>('');
   
+  // Schedules state
+  const [schedules, setSchedules] = useState<any[]>([]);
+  const [isLoadingSchedules, setIsLoadingSchedules] = useState<boolean>(true);
+  const [errorSchedules, setErrorSchedules] = useState<string>('');
+  const [deleteSuccess, setDeleteSuccess] = useState<string>('');
+  
   // Max lifts edit modal state
   const [showLiftModal, setShowLiftModal] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -84,9 +90,69 @@ const AdminPage: React.FC = () => {
     debouncedSearch(query);
   };
   
+  // Fetch schedules
+  const fetchSchedules = useCallback(async () => {
+    try {
+      setIsLoadingSchedules(true);
+      setErrorSchedules('');
+      setDeleteSuccess('');
+      
+      // Get current date
+      const now = new Date();
+      const startDate = new Date(now);
+      startDate.setDate(startDate.getDate() - 7); // One week ago
+      
+      const endDate = new Date(now);
+      endDate.setDate(endDate.getDate() + 30); // 30 days in the future
+      
+      const response = await scheduleService.getAllSchedules({
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      });
+      
+      setSchedules(response.data.schedules);
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 'Failed to fetch schedules';
+      setErrorSchedules(errorMessage);
+      console.error('Failed to fetch schedules:', err);
+    } finally {
+      setIsLoadingSchedules(false);
+    }
+  }, []);
+  
+  // Handle schedule deletion
+  const handleDeleteSchedule = async (id: string) => {
+    try {
+      setErrorSchedules('');
+      setDeleteSuccess('');
+      
+      // Confirm before deleting
+      if (!window.confirm('Are you sure you want to delete this class? This will also remove all bookings associated with this class.')) {
+        return;
+      }
+      
+      await scheduleService.deleteSchedule(id);
+      
+      // Update the schedules list
+      setSchedules(schedules.filter(schedule => schedule.id !== id));
+      setDeleteSuccess('Class deleted successfully');
+      
+      // Clear success message after a few seconds
+      setTimeout(() => {
+        setDeleteSuccess('');
+      }, 3000);
+      
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.error || 'Failed to delete class';
+      setErrorSchedules(errorMessage);
+      console.error('Delete class error:', err);
+    }
+  };
+  
   useEffect(() => {
     fetchUsers();
-  }, [fetchUsers]);
+    fetchSchedules();
+  }, [fetchUsers, fetchSchedules]);
 
   // Handler for opening the edit max lifts modal
   const handleOpenLiftModal = (user: User) => {
@@ -205,6 +271,9 @@ const AdminPage: React.FC = () => {
         coachId: '',
         capacity: 8,
       });
+      
+      // Refresh schedules list
+      fetchSchedules();
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 'Failed to create schedule';
       setErrorSchedule(errorMessage);
@@ -224,12 +293,97 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  };
+  
+  // Format time for display (e.g., "16:00" to "4:00 PM")
+  const formatTime = (timeString: string) => {
+    const [hours, minutes] = timeString.split(':');
+    const hour = parseInt(hours, 10);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+  
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
+          <div className="card mb-6">
+            <h2 className="text-2xl font-semibold mb-4">Manage Classes</h2>
+            
+            {errorSchedules && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                {errorSchedules}
+              </div>
+            )}
+            
+            {deleteSuccess && (
+              <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                {deleteSuccess}
+              </div>
+            )}
+            
+            {isLoadingSchedules ? (
+              <div className="text-center py-4">Loading schedules...</div>
+            ) : schedules.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                No classes scheduled in the next 30 days.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coach</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bookings</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {schedules.map((schedule) => (
+                      <tr key={schedule.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">{formatDate(schedule.date)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">{formatTime(schedule.time)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            schedule.workoutType === 'UPPER'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {schedule.workoutType === 'UPPER' ? 'Upper' : 'Lower'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {schedule.coach?.firstName} {schedule.coach?.lastName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {schedule.currentParticipants}/{schedule.capacity}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            className="text-red-600 hover:text-red-900"
+                            onClick={() => handleDeleteSchedule(schedule.id)}
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+          
           <div className="card">
             <h2 className="text-2xl font-semibold mb-4">Create Schedule</h2>
             
