@@ -58,71 +58,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <section className="mb-12">
-        <h2 className="text-3xl font-bold text-center mb-8">Weekly Program Structure</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="p-4 text-left border">Week</th>
-                <th className="p-4 text-left border">Rep Scheme</th>
-                <th className="p-4 text-left border">Percentages</th>
-                <th className="p-4 text-left border">Rest Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="p-4 border">Week 1</td>
-                <td className="p-4 border">1,1,1,1,1</td>
-                <td className="p-4 border">95,100,105,105,105</td>
-                <td className="p-4 border">1 minute</td>
-              </tr>
-              <tr className="bg-gray-50">
-                <td className="p-4 border">Week 2</td>
-                <td className="p-4 border">10,10,10,10,10</td>
-                <td className="p-4 border">50,55,60,60,60</td>
-                <td className="p-4 border">2 minutes</td>
-              </tr>
-              <tr>
-                <td className="p-4 border">Week 3</td>
-                <td className="p-4 border">10,8,6,4,2</td>
-                <td className="p-4 border">55,65,75,85,95</td>
-                <td className="p-4 border">1 minute</td>
-              </tr>
-              <tr className="bg-gray-50">
-                <td className="p-4 border">Week 4</td>
-                <td className="p-4 border">10x10</td>
-                <td className="p-4 border">55 (all sets)</td>
-                <td className="p-4 border">2 minutes</td>
-              </tr>
-              <tr>
-                <td className="p-4 border">Week 5</td>
-                <td className="p-4 border">5,5,5,5,5</td>
-                <td className="p-4 border">65,75,85,85,85</td>
-                <td className="p-4 border">1 minute</td>
-              </tr>
-              <tr className="bg-gray-50">
-                <td className="p-4 border">Week 6</td>
-                <td className="p-4 border">20,20,20,20,20</td>
-                <td className="p-4 border">45,45,45,45,45</td>
-                <td className="p-4 border">2 minutes</td>
-              </tr>
-              <tr>
-                <td className="p-4 border">Week 7</td>
-                <td className="p-4 border">5,3,1,1,1</td>
-                <td className="p-4 border">75,85,95,95,95</td>
-                <td className="p-4 border">1 minute</td>
-              </tr>
-              <tr className="bg-gray-50">
-                <td className="p-4 border">Week 8</td>
-                <td className="p-4 border">15,15,15,15,15</td>
-                <td className="p-4 border">45,50,55,55,55</td>
-                <td className="p-4 border">2 minutes</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+
 
       <section className="mb-12">
         <h2 className="text-3xl font-bold text-center mb-8">Schedule</h2>
@@ -135,52 +71,52 @@ const HomePage: React.FC = () => {
             <div>
               <h4 className="font-medium text-lg mb-2">Monday (Upper Body)</h4>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                <li>4:00 PM - 5:00 PM</li>
-                <li>5:00 PM - 6:00 PM</li>
-                <li>6:00 PM - 7:00 PM</li>
-                <li>7:00 PM - 8:00 PM</li>
+                <li>4:00 PM - 5:00 PM (Upper Body)</li>
+                <li>5:00 PM - 6:00 PM (Upper Body)</li>
+                <li>6:00 PM - 7:00 PM (Upper Body)</li>
+                <li>7:00 PM - 8:00 PM (Upper Body)</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-lg mb-2">Tuesday (Lower Body)</h4>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                <li>4:00 PM - 5:00 PM</li>
-                <li>5:00 PM - 6:00 PM</li>
-                <li>6:00 PM - 7:00 PM</li>
-                <li>7:00 PM - 8:00 PM</li>
+                <li>4:00 PM - 5:00 PM (Lower Body)</li>
+                <li>5:00 PM - 6:00 PM (Lower Body)</li>
+                <li>6:00 PM - 7:00 PM (Lower Body)</li>
+                <li>7:00 PM - 8:00 PM (Lower Body)</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-lg mb-2">Wednesday (Upper Body)</h4>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                <li>4:00 PM - 5:00 PM</li>
-                <li>5:00 PM - 6:00 PM</li>
-                <li>6:00 PM - 7:00 PM</li>
-                <li>7:00 PM - 8:00 PM</li>
+                <li>4:00 PM - 5:00 PM (Upper Body)</li>
+                <li>5:00 PM - 6:00 PM (Upper Body)</li>
+                <li>6:00 PM - 7:00 PM (Upper Body)</li>
+                <li>7:00 PM - 8:00 PM (Upper Body)</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-lg mb-2">Thursday (Lower Body)</h4>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                <li>4:00 PM - 5:00 PM</li>
-                <li>5:00 PM - 6:00 PM</li>
-                <li>6:00 PM - 7:00 PM</li>
-                <li>7:00 PM - 8:00 PM</li>
+                <li>4:00 PM - 5:00 PM (Lower Body)</li>
+                <li>5:00 PM - 6:00 PM (Lower Body)</li>
+                <li>6:00 PM - 7:00 PM (Lower Body)</li>
+                <li>7:00 PM - 8:00 PM (Lower Body)</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-lg mb-2">Friday</h4>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                <li>4:00 PM - 5:00 PM</li>
-                <li>5:00 PM - 6:00 PM</li>
-                <li>6:00 PM - 7:00 PM</li>
+                <li>4:00 PM - 5:00 PM (Upper & Lower Body)</li>
+                <li>5:00 PM - 6:00 PM (Upper & Lower Body)</li>
+                <li>6:00 PM - 7:00 PM (Upper & Lower Body)</li>
               </ul>
             </div>
             <div>
               <h4 className="font-medium text-lg mb-2">Saturday</h4>
               <ul className="list-disc list-inside text-gray-600 space-y-1">
-                <li>9:00 AM - 10:00 AM</li>
-                <li>10:00 AM - 11:00 AM</li>
+                <li>9:00 AM - 10:00 AM (Upper & Lower Body)</li>
+                <li>10:00 AM - 11:00 AM (Upper & Lower Body)</li>
               </ul>
             </div>
           </div>

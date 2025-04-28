@@ -4,10 +4,7 @@
   "private": true,
   "dependencies": {
     "@headlessui/react": "^1.7.17",
-    "@sentry/browser": "^9.14.0",
-    "@sentry/react": "^9.14.0",
-    "@sentry/replay": "^7.116.0",
-    "@sentry/tracing": "^7.120.3",
+
     "@tailwindcss/forms": "^0.5.6",
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -42,7 +39,8 @@
       "src/**/*.{js,jsx,ts,tsx}",
       "!src/**/*.d.ts",
       "!src/index.tsx",
-      "!src/reportWebVitals.ts"
+      "!src/reportWebVitals.ts",
+      "!src/tests/**/*"
     ],
     "coverageReporters": [
       "json",

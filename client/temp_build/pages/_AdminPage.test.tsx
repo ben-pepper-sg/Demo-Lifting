@@ -18,15 +18,12 @@ jest.mock('../services/api', () => ({
 // Mock Sentry modules
 jest.mock('@sentry/react', () => ({
   captureException: jest.fn(),
-  setContext: jest.fn()
+  setContext: jest.fn(),
+  addBreadcrumb: jest.fn()
 }));
 
-jest.mock('@sentry/browser', () => ({
-  startTransaction: jest.fn(() => ({
-    finish: jest.fn(),
-    setStatus: jest.fn()
-  })),
-}));
+// Create helper for Axios responses
+// Just mock the response directly instead of using a helper function
 
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 const mockGetAllUsers = userService.getAllUsers as jest.MockedFunction<typeof userService.getAllUsers>;
@@ -55,19 +52,11 @@ describe('AdminPage', () => {
           { id: '1', role: 'ADMIN', email: 'admin@test.com', firstName: 'Admin', lastName: 'User', maxBench: null, maxOHP: null, maxSquat: null, maxDeadlift: null },
           { id: '2', role: 'USER', email: 'user@test.com', firstName: 'Regular', lastName: 'User', maxBench: null, maxOHP: null, maxSquat: null, maxDeadlift: null },
         ],
-      },
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {}
+      }
     });
     
     mockCreateSchedule.mockResolvedValue({
-      data: { message: 'Schedule created successfully' },
-      status: 201,
-      statusText: 'Created',
-      headers: {},
-      config: {}
+      data: { message: 'Schedule created successfully' }
     });
   });
 

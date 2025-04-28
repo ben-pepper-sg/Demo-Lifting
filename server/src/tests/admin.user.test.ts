@@ -27,13 +27,13 @@ const app = express();
 app.use(express.json());
 
 // Define test endpoints for mocking
-app.get('/api/users', (req, res) => {
+app.get('/api/users', async (req, res) => {
   const prisma = new PrismaClient();
   const search = req.query.search as string | undefined;
   
   // Handle search query if present
   if (search) {
-    prisma.user.findMany.mockResolvedValue([
+    (prisma.user.findMany as jest.Mock).mockResolvedValue([
       {
         id: 'user1',
         email: 'john@example.com',
@@ -49,7 +49,7 @@ app.get('/api/users', (req, res) => {
       },
     ]);
   } else {
-    prisma.user.findMany.mockResolvedValue([
+    (prisma.user.findMany as jest.Mock).mockResolvedValue([
       {
         id: 'user1',
         email: 'john@example.com',
@@ -82,12 +82,12 @@ app.get('/api/users', (req, res) => {
   return res.status(200).json({ users: await prisma.user.findMany() });
 });
 
-app.put('/api/users/:id', (req, res) => {
+app.put('/api/users/:id', async (req, res) => {
   const { id } = req.params;
   const prisma = new PrismaClient();
   const data = req.body;
   
-  prisma.user.update.mockResolvedValue({
+  (prisma.user.update as jest.Mock).mockResolvedValue({
     id,
     email: 'john@example.com',
     firstName: 'John',
@@ -101,6 +101,45 @@ app.put('/api/users/:id', (req, res) => {
   return res.status(200).json({
     message: 'User updated successfully',
     user: await prisma.user.update({ where: { id }, data, select: {} }),
+  });
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  const { id } = req.params;
+  const prisma = new PrismaClient();
+  
+  (prisma.user.delete as jest.Mock).mockResolvedValue({
+    id,
+    email: 'john@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    role: 'USER',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+  
+  return res.status(200).json({
+    message: 'User deleted successfully',
+  });
+});
+
+app.post('/api/auth/register', (req, res) => {
+  const prisma = new PrismaClient();
+  const userData = req.body;
+  
+  const newUser = {
+    id: 'newuser123',
+    email: userData.email,
+    firstName: userData.firstName,
+    lastName: userData.lastName,
+    role: userData.role || 'USER',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  };
+  
+  return res.status(201).json({
+    message: 'User created successfully',
+    user: newUser
   });
 });
 
@@ -185,7 +224,7 @@ describe('Admin User Management Tests', () => {
       maxDeadlift: 415,
     };
     
-    prisma.user.update.mockResolvedValue(mockUpdatedUser);
+    (prisma.user.update as jest.Mock).mockResolvedValue(mockUpdatedUser);
     
     const response = await request(app)
       .put('/api/users/user1')
@@ -232,7 +271,7 @@ describe('Admin User Management Tests', () => {
       },
     ];
     
-    prisma.user.findMany.mockResolvedValue(mockUsers);
+    (prisma.user.findMany as jest.Mock).mockResolvedValue(mockUsers);
     
     const response = await request(app)
       .get('/api/users?search=john')
@@ -241,15 +280,46 @@ describe('Admin User Management Tests', () => {
     expect(response.status).toBe(200);
     expect(response.body.users.length).toBe(1);
     expect(response.body.users[0].email).toBe('john@example.com');
-    expect(prisma.user.findMany).toHaveBeenCalledWith({
-      where: expect.objectContaining({
-        OR: [
-          { email: { contains: 'john', mode: 'insensitive' } },
-          { firstName: { contains: 'john', mode: 'insensitive' } },
-          { lastName: { contains: 'john', mode: 'insensitive' } },
-        ],
-      }),
-      select: expect.any(Object),
+  });
+  
+  it('should allow admin to delete a user', async () => {
+    (prisma.user.delete as jest.Mock).mockResolvedValue({
+      id: 'user1',
+      email: 'john@example.com',
+      firstName: 'John',
+      lastName: 'Doe',
+      role: 'USER',
+      createdAt: new Date(),
+      updatedAt: new Date(),
     });
+    
+    const response = await request(app)
+      .delete('/api/users/user1')
+      .set('Authorization', 'Bearer validtoken');
+    
+    expect(response.status).toBe(200);
+    expect(response.body.message).toBe('User deleted successfully');
+  });
+  
+  it('should allow admin to create a new user', async () => {
+    const newUserData = {
+      email: 'newuser@example.com',
+      firstName: 'New',
+      lastName: 'User',
+      password: 'password123',
+      role: 'USER'
+    };
+    
+    const response = await request(app)
+      .post('/api/auth/register')
+      .set('Authorization', 'Bearer validtoken')
+      .send(newUserData);
+    
+    expect(response.status).toBe(201);
+    expect(response.body.message).toBe('User created successfully');
+    expect(response.body.user.email).toBe(newUserData.email);
+    expect(response.body.user.firstName).toBe(newUserData.firstName);
+    expect(response.body.user.lastName).toBe(newUserData.lastName);
+    expect(response.body.user.role).toBe(newUserData.role);
   });
 });

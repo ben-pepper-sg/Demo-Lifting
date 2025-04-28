@@ -72,9 +72,11 @@ async function main() {
         { dayOfWeek: 5, time, capacity: 8, workoutType: LiftType.LOWER, coachId: admin.id }
       ])).flat(),
       
-      // Saturday - Morning Upper and Lower options
-      { dayOfWeek: 6, time: saturdayTimes[0], capacity: 10, workoutType: LiftType.UPPER, coachId: admin.id },
-      { dayOfWeek: 6, time: saturdayTimes[1], capacity: 10, workoutType: LiftType.LOWER, coachId: admin.id },
+      // Saturday - Morning Upper and Lower options available at both times (like Friday)
+      ...saturdayTimes.map(time => ([
+        { dayOfWeek: 6, time, capacity: 8, workoutType: LiftType.UPPER, coachId: admin.id },
+        { dayOfWeek: 6, time, capacity: 8, workoutType: LiftType.LOWER, coachId: admin.id }
+      ])).flat(),
     ];
 
     // Clear existing default schedules first

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import * as Sentry from '@sentry/node';
+// Error monitoring removed
 
 // Extend Request type to include user property
 declare global {
@@ -19,17 +19,10 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       // Log authentication attempt without token
-      Sentry.captureMessage('Authorization attempt without token', {
-        level: 'warning',
-        tags: {
-          type: 'authentication',
-          endpoint: req.originalUrl
-        },
-        extra: {
-          ip: req.ip,
-          method: req.method,
-          headers: req.headers
-        }
+      console.warn('Authorization attempt without token:', {
+        endpoint: req.originalUrl,
+        ip: req.ip,
+        method: req.method
       });
       
       return res.status(401).json({ error: 'Authorization token required' });
@@ -43,17 +36,12 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     
     next();
   } catch (error) {
-    // Log detailed authentication error to Sentry
-    Sentry.captureException(error, {
-      tags: {
-        type: 'authentication',
-        endpoint: req.originalUrl
-      },
-      extra: {
-        ip: req.ip,
-        method: req.method,
-        path: req.path
-      }
+    // Log authentication error
+    console.error('Authentication error:', {
+      endpoint: req.originalUrl,
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
     
     console.error('Authentication error:', error);
@@ -64,20 +52,13 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
 export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || req.user.role !== 'ADMIN') {
     // Log unauthorized admin access attempt
-    Sentry.captureMessage('Unauthorized admin access attempt', {
-      level: 'warning',
-      tags: {
-        type: 'authorization',
-        endpoint: req.originalUrl,
-        requiredRole: 'ADMIN'
-      },
-      extra: {
-        userId: req.user?.userId,
-        userRole: req.user?.role || 'undefined',
-        ip: req.ip,
-        method: req.method,
-        path: req.path
-      }
+    console.warn('Unauthorized admin access attempt:', {
+      endpoint: req.originalUrl,
+      userId: req.user?.userId,
+      userRole: req.user?.role || 'undefined',
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
     
     return res.status(403).json({ error: 'Access denied. Admin privileges required' });
@@ -101,27 +82,18 @@ export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) 
   
   // Add response tracking
   res.on('finish', () => {
-    // Log successful admin actions
-    Sentry.addBreadcrumb({
-      category: 'admin.access',
-      message: `Admin action completed: ${req.method} ${req.path}`,
-      level: 'info',
-      data: {
-        ...adminContext,
-        statusCode: res.statusCode,
-        transactionId
-      }
+    // Log admin actions
+    console.info(`Admin action completed: ${req.method} ${req.path}`, {
+      ...adminContext,
+      statusCode: res.statusCode,
+      transactionId
     });
     
     if (res.statusCode >= 400) {
-      Sentry.captureMessage(`Admin action error: ${req.method} ${req.path}`, {
-        level: 'error',
-        tags: {
-          type: 'admin.action.error',
-          statusCode: res.statusCode.toString(),
-          adminId: req.user.userId
-        },
-        extra: adminContext
+      console.error(`Admin action error: ${req.method} ${req.path}`, {
+        statusCode: res.statusCode,
+        adminId: req.user.userId,
+        ...adminContext
       });
     }
   });
@@ -132,20 +104,13 @@ export const authorizeAdmin = (req: Request, res: Response, next: NextFunction) 
 export const authorizeCoach = (req: Request, res: Response, next: NextFunction) => {
   if (!req.user || (req.user.role !== 'ADMIN' && req.user.role !== 'COACH')) {
     // Log unauthorized coach access attempt
-    Sentry.captureMessage('Unauthorized coach access attempt', {
-      level: 'warning',
-      tags: {
-        type: 'authorization',
-        endpoint: req.originalUrl,
-        requiredRole: 'COACH/ADMIN'
-      },
-      extra: {
-        userId: req.user?.userId,
-        userRole: req.user?.role || 'undefined',
-        ip: req.ip,
-        method: req.method,
-        path: req.path
-      }
+    console.warn('Unauthorized coach access attempt:', {
+      endpoint: req.originalUrl,
+      userId: req.user?.userId,
+      userRole: req.user?.role || 'undefined',
+      ip: req.ip,
+      method: req.method,
+      path: req.path
     });
     
     return res.status(403).json({ error: 'Access denied. Coach privileges required' });

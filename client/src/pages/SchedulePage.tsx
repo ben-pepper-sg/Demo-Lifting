@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { scheduleService } from '../services/api';
-import * as Sentry from '@sentry/react';
+// Error monitoring removed
+import { formatDate as formatDateUtil } from '../utils/dateUtils';
 
 type Schedule = {
   id: string;
@@ -22,8 +23,9 @@ const SchedulePage: React.FC = () => {
   const { user } = useAuth();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [dateFilter, setDateFilter] = useState<string>(() => {
+    // Get current date in local time (just the date portion YYYY-MM-DD)
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
@@ -32,17 +34,7 @@ const SchedulePage: React.FC = () => {
   const [selectedScheduleId, setSelectedScheduleId] = useState<string>('');
   const [selectedWorkoutType, setSelectedWorkoutType] = useState<string>('UPPER');
 
-  useEffect(() => {
-    fetchSchedules();
-  }, [dateFilter]);
-
-  const fetchSchedules = async () => {
-    // Create a transaction for Sentry performance monitoring
-    const transaction = Sentry.startTransaction({
-      name: 'fetch_schedules',
-      op: 'data-fetch',
-    });
-    
+  const fetchSchedules = useCallback(async () => {
     try {
       setIsLoading(true);
       setError('');
@@ -52,50 +44,53 @@ const SchedulePage: React.FC = () => {
       const endDate = new Date(dateFilter);
       endDate.setDate(endDate.getDate() + 7); // Show a week from the selected date
       
-      // Add context to the transaction
-      Sentry.setContext('date_range', {
+      // Date range for debugging
+      console.debug('Loading date range:', {
         startDate: startDate.toISOString(),
         endDate: endDate.toISOString(),
         dateFilter,
       });
-      transaction.setTag('date_filter', dateFilter);
+      
+      // Use raw date strings in the format YYYY-MM-DD
+      const startDateStr = dateFilter;
+      
+      // Calculate the end date (7 days later)
+      const endDateObj = new Date(dateFilter);
+      endDateObj.setDate(endDateObj.getDate() + 7);
+      const endDateStr = `${endDateObj.getFullYear()}-${String(endDateObj.getMonth() + 1).padStart(2, '0')}-${String(endDateObj.getDate()).padStart(2, '0')}`;
+      
+      console.debug('Fetching schedule with date range:', {
+        startDate: startDateStr,
+        endDate: endDateStr
+      });
       
       const response = await scheduleService.getAllSchedules({
-        startDate: startDate.toISOString(),
-        endDate: endDate.toISOString(),
+        startDate: startDateStr,
+        endDate: endDateStr,
       });
       
       setSchedules(response.data.schedules);
-      transaction.setStatus('ok');
     } catch (err: any) {
       console.error('Fetch schedules error:', err);
       
-      // Capture the error in Sentry
-      Sentry.captureException(err, {
-        tags: {
-          action: 'fetch_schedules',
-        },
-        extra: {
-          dateFilter,
-          responseError: err.response?.data,
-        },
+      // Log error with details
+      console.error('Fetch schedules error:', {
+        action: 'fetch_schedules',
+        dateFilter,
+        responseError: err.response?.data,
       });
       
       setError(err.response?.data?.error || 'Failed to fetch schedules');
-      transaction.setStatus('error');
     } finally {
       setIsLoading(false);
-      transaction.finish();
     }
-  };
+  }, [dateFilter]);
+  
+  useEffect(() => {
+    fetchSchedules();
+  }, [fetchSchedules]);
 
   const handleBookSession = async (scheduleId: string) => {
-    // Start a Sentry transaction for performance monitoring
-    const transaction = Sentry.startTransaction({
-      name: 'book_session',
-      op: 'user-action',
-    });
-
     try {
       setIsLoading(true);
       setError('');
@@ -108,27 +103,25 @@ const SchedulePage: React.FC = () => {
       }
       
       // Check if it's Friday or Saturday (5 = Friday, 6 = Saturday)
+      // Use the date directly without timezone adjustment since server now stores UTC
       const scheduleDate = new Date(schedule.date);
       const dayOfWeek = scheduleDate.getDay();
       const isFridayOrSaturday = dayOfWeek === 5 || dayOfWeek === 6;
       
-      // Add context to Sentry
-      Sentry.setContext('booking_attempt', {
+      // Log booking attempt details
+      console.debug('Booking attempt:', {
         scheduleId,
         scheduleDate: schedule.date,
         dayOfWeek,
         isFridayOrSaturday,
       });
-      transaction.setTag('day_of_week', dayOfWeek.toString());
-      transaction.setTag('is_weekend', isFridayOrSaturday.toString());
       
       if (isFridayOrSaturday) {
         // For Friday or Saturday, we need to show the modal first
         setSelectedScheduleId(scheduleId);
         setShowWorkoutTypeModal(true);
         setIsLoading(false);
-        transaction.setStatus('requires_user_input');
-        transaction.finish();
+
         return;
       }
       
@@ -139,19 +132,14 @@ const SchedulePage: React.FC = () => {
       
       // Refresh schedules
       fetchSchedules();
-      transaction.setStatus('ok');
     } catch (err: any) {
       console.error('Booking error:', err);
       
-      // Capture error with Sentry
-      Sentry.captureException(err, {
-        tags: {
-          action: 'book_session',
-        },
-        extra: {
-          scheduleId,
-          responseError: err.response?.data,
-        },
+      // Log booking error details
+      console.error('Booking error details:', {
+        action: 'book_session',
+        scheduleId,
+        responseError: err.response?.data,
       });
       
       // Special handling for workout type selection requirement
@@ -161,32 +149,24 @@ const SchedulePage: React.FC = () => {
       } else {
         setError(err.response?.data?.error || 'Failed to book session');
       }
-      transaction.setStatus('error');
     } finally {
       setIsLoading(false);
-      transaction.finish();
     }
   };
   
   // Handle confirmation of workout type selection
   const handleConfirmWorkoutType = async () => {
-    // Start a Sentry transaction for performance monitoring
-    const transaction = Sentry.startTransaction({
-      name: 'confirm_workout_type',
-      op: 'user-action',
-    });
     
     try {
       setIsLoading(true);
       setError('');
       setShowWorkoutTypeModal(false);
       
-      // Add context to Sentry
-      Sentry.setContext('workout_selection', {
+      // Log workout selection
+      console.debug('Workout selection:', {
         scheduleId: selectedScheduleId,
         workoutType: selectedWorkoutType,
       });
-      transaction.setTag('workout_type', selectedWorkoutType);
       
       // Book the session with the selected workout type
       await scheduleService.bookTimeSlot(selectedScheduleId, selectedWorkoutType);
@@ -195,47 +175,33 @@ const SchedulePage: React.FC = () => {
       
       // Refresh schedules
       fetchSchedules();
-      transaction.setStatus('ok');
     } catch (err: any) {
       console.error('Booking with workout type error:', err);
       
-      // Capture error with Sentry
-      Sentry.captureException(err, {
-        tags: {
-          action: 'confirm_workout_type',
-        },
-        extra: {
-          scheduleId: selectedScheduleId,
-          workoutType: selectedWorkoutType,
-          responseError: err.response?.data,
-        },
+      // Log workout type selection error
+      console.error('Workout type selection error:', {
+        action: 'confirm_workout_type',
+        scheduleId: selectedScheduleId,
+        workoutType: selectedWorkoutType,
+        responseError: err.response?.data,
       });
       
       setError(err.response?.data?.error || 'Failed to book session');
-      transaction.setStatus('error');
     } finally {
       setIsLoading(false);
-      transaction.finish();
     }
   };
 
   const handleCancelBooking = async (scheduleId: string) => {
-    // Create a transaction for Sentry performance monitoring
-    const transaction = Sentry.startTransaction({
-      name: 'cancel_booking',
-      op: 'user-action',
-    });
-    
     try {
       setIsLoading(true);
       setError('');
       setSuccessMessage('');
       
-      // Add context to the transaction
-      Sentry.setContext('cancel_booking', {
-        scheduleId,
+      // Log cancel booking action
+      console.debug('Cancel booking:', {
+        scheduleId
       });
-      transaction.setTag('schedule_id', scheduleId);
       
       await scheduleService.cancelBooking(scheduleId);
       
@@ -243,26 +209,19 @@ const SchedulePage: React.FC = () => {
       
       // Refresh schedules
       fetchSchedules();
-      transaction.setStatus('ok');
     } catch (err: any) {
       console.error('Cancel booking error:', err);
       
-      // Capture the error in Sentry
-      Sentry.captureException(err, {
-        tags: {
-          action: 'cancel_booking',
-        },
-        extra: {
-          scheduleId,
-          responseError: err.response?.data,
-        },
+      // Log cancel booking error details
+      console.error('Cancel booking error details:', {
+        action: 'cancel_booking',
+        scheduleId,
+        responseError: err.response?.data,
       });
       
       setError(err.response?.data?.error || 'Failed to cancel booking');
-      transaction.setStatus('error');
     } finally {
       setIsLoading(false);
-      transaction.finish();
     }
   };
 
@@ -270,9 +229,9 @@ const SchedulePage: React.FC = () => {
     return schedule.bookings.some(booking => booking.user?.id === user?.id);
   };
 
+  // Format date for display
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return formatDateUtil(dateString, {
       weekday: 'long',
       month: 'short',
       day: 'numeric',
@@ -282,13 +241,28 @@ const SchedulePage: React.FC = () => {
   const groupSchedulesByDate = () => {
     const grouped: { [key: string]: Schedule[] } = {};
     
+    // Debug the schedule dates we're grouping
+    console.debug('Grouping schedules by date:', schedules.map(s => ({ 
+      id: s.id, 
+      date: s.date, 
+      dateObj: new Date(s.date),
+      dateParts: s.date.split('T')[0]
+    })));
+    
     schedules.forEach(schedule => {
+      // Get just the date part (YYYY-MM-DD) to use as key for grouping
       const date = schedule.date.split('T')[0];
       if (!grouped[date]) {
         grouped[date] = [];
       }
       grouped[date].push(schedule);
     });
+    
+    // Log the resulting grouping
+    console.debug('Grouped schedules:', Object.keys(grouped).map(date => ({ 
+      date, 
+      count: grouped[date].length 
+    })));
     
     return grouped;
   };
@@ -458,5 +432,4 @@ const SchedulePage: React.FC = () => {
   );
 };
 
-// Wrap component with Sentry profiler for performance monitoring
-export default Sentry.withProfiler(SchedulePage, { name: 'SchedulePage' });
+export default SchedulePage;

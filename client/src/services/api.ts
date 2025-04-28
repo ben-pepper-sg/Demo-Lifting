@@ -38,6 +38,7 @@ export const authService = {
   login: (email: string, password: string) => api.post('/auth/login', { email, password }),
   register: (userData: any) => api.post('/auth/register', userData),
   getCurrentUser: () => api.get('/auth/me'),
+  createUser: (userData: any) => api.post('/auth/admin/users', userData),
 };
 
 // User services

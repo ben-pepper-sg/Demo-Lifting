@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { userService, scheduleService } from '../services/api';
+import { userService, scheduleService, authService } from '../services/api';
 // Error monitoring removed
 import { debounce } from '../utils/helpers';
+import { formatDate as formatDateUtil } from '../utils/dateUtils';
 
 type User = {
   id: string;
@@ -40,6 +41,19 @@ const AdminPage: React.FC = () => {
   });
   const [updateSuccess, setUpdateSuccess] = useState<string>('');
   const [updateError, setUpdateError] = useState<string>('');
+  
+  // Add user modal state
+  const [showAddUserModal, setShowAddUserModal] = useState<boolean>(false);
+  const [addUserForm, setAddUserForm] = useState({
+    email: '',
+    password: '',
+    firstName: '',
+    lastName: '',
+    role: 'USER',
+  });
+  const [isAddingUser, setIsAddingUser] = useState<boolean>(false);
+  const [addUserSuccess, setAddUserSuccess] = useState<string>('');
+  const [addUserError, setAddUserError] = useState<string>('');
   
   const [scheduleForm, setScheduleForm] = useState({
     date: '',
@@ -253,8 +267,16 @@ const AdminPage: React.FC = () => {
         adminId: user?.id
       });
       
+      // Since the server side now parses the date directly, send the raw date string
+      // without any conversion to avoid timezone issues
+      console.debug('Creating schedule with date:', {
+        originalDate: scheduleForm.date,
+      });
+
       await scheduleService.createSchedule({
         ...scheduleForm,
+        // Send the raw date string without conversion
+        date: scheduleForm.date,
         coachId,
         capacity: parseInt(scheduleForm.capacity.toString()),
       });
@@ -293,10 +315,10 @@ const AdminPage: React.FC = () => {
     }
   };
 
-  // Format date for display
+  // Format date for display - use our utility function
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+    // Use the imported formatDateUtil utility function
+    return formatDateUtil(dateString);
   };
   
   // Format time for display (e.g., "16:00" to "4:00 PM")
@@ -308,11 +330,78 @@ const AdminPage: React.FC = () => {
     return `${displayHour}:${minutes} ${ampm}`;
   };
   
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  const handleDeleteUser = async (userId: string) => {
+  try {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+    
+    await userService.deleteUser(userId);
+    
+    // Update users list
+    setUsers(users.filter(u => u.id !== userId));
+    setDeleteSuccess('User deleted successfully');
+    
+    // Clear success message after a few seconds
+    setTimeout(() => {
+      setDeleteSuccess('');
+    }, 3000);
+    
+  } catch (err: any) {
+    const errorMessage = err.response?.data?.error || 'Failed to delete user';
+    setErrorUsers(errorMessage);
+    console.error('Delete user error:', err);
+  }
+};
+
+const handleAddUserChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const { name, value } = e.target;
+  setAddUserForm({ ...addUserForm, [name]: value });
+};
+
+const handleAddUser = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setAddUserError('');
+  setAddUserSuccess('');
+  setIsAddingUser(true);
+  
+  try {
+    const response = await authService.createUser(addUserForm);
+    
+    // Add the new user to the list
+    setUsers([...users, response.data.user]);
+    setAddUserSuccess('User created successfully');
+    
+    // Reset form and close modal after a short delay
+    setTimeout(() => {
+      setAddUserForm({
+        email: '',
+        password: '',
+        firstName: '',
+        lastName: '',
+        role: 'USER',
+      });
+      setShowAddUserModal(false);
+      setAddUserSuccess('');
+    }, 1500);
+    
+  } catch (err: any) {
+    const errorMessage = err.response?.data?.error || 'Failed to create user';
+    setAddUserError(errorMessage);
+    console.error('Create user error:', err);
+  } finally {
+    setIsAddingUser(false);
+  }
+};
+
+return (
+  <div>
+    <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
+    
+    {/* Import and use AdminNavigation */}
+    {React.createElement(require('../components/admin/AdminNavigation').default)}
+    
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           <div className="card mb-6">
             <h2 className="text-2xl font-semibold mb-4">Manage Classes</h2>
@@ -512,6 +601,16 @@ const AdminPage: React.FC = () => {
               />
             </div>
             
+            {/* Add new user button */}
+            <div className="mb-4">
+              <button 
+                className="btn-primary"
+                onClick={() => setShowAddUserModal(true)}
+              >
+                Add New User
+              </button>
+            </div>
+            
             {isLoadingUsers ? (
               <div className="text-center py-4">Loading users...</div>
             ) : users.length === 0 ? (
@@ -576,6 +675,12 @@ const AdminPage: React.FC = () => {
                             onClick={() => handleOpenLiftModal(user)}
                           >
                             Edit Max Lifts
+                          </button>
+                          <button
+                            className="text-red-600 hover:text-red-900"
+                            onClick={() => handleDeleteUser(user.id)}
+                          >
+                            Delete
                           </button>
                         </td>
                       </tr>
@@ -686,6 +791,130 @@ const AdminPage: React.FC = () => {
                 >
                   Cancel
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {showAddUserModal && (
+        <div className="fixed inset-0 z-10 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+            </div>
+
+            <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="sm:flex sm:items-start">
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900 mb-4">
+                      Add New User
+                    </h3>
+                    
+                    {addUserError && (
+                      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        {addUserError}
+                      </div>
+                    )}
+                    
+                    {addUserSuccess && (
+                      <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+                        {addUserSuccess}
+                      </div>
+                    )}
+                    
+                    <form onSubmit={handleAddUser} className="space-y-4">
+                      <div>
+                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                        <input
+                          type="email"
+                          id="email"
+                          name="email"
+                          className="form-input mt-1 block w-full"
+                          value={addUserForm.email}
+                          onChange={handleAddUserChange}
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                        <input
+                          type="password"
+                          id="password"
+                          name="password"
+                          className="form-input mt-1 block w-full"
+                          value={addUserForm.password}
+                          onChange={handleAddUserChange}
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First Name</label>
+                        <input
+                          type="text"
+                          id="firstName"
+                          name="firstName"
+                          className="form-input mt-1 block w-full"
+                          value={addUserForm.firstName}
+                          onChange={handleAddUserChange}
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input
+                          type="text"
+                          id="lastName"
+                          name="lastName"
+                          className="form-input mt-1 block w-full"
+                          value={addUserForm.lastName}
+                          onChange={handleAddUserChange}
+                          required
+                        />
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="role" className="block text-sm font-medium text-gray-700">Role</label>
+                        <select
+                          id="role"
+                          name="role"
+                          className="form-input mt-1 block w-full"
+                          value={addUserForm.role}
+                          onChange={handleAddUserChange}
+                          required
+                        >
+                          <option value="USER">User</option>
+                          <option value="COACH">Coach</option>
+                          <option value="ADMIN">Admin</option>
+                        </select>
+                      </div>
+                      
+                      <div className="mt-5 sm:mt-6 sm:flex sm:flex-row-reverse">
+                        <button
+                          type="submit"
+                          className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                          disabled={isAddingUser}
+                        >
+                          {isAddingUser ? 'Adding...' : 'Add User'}
+                        </button>
+                        <button
+                          type="button"
+                          className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                          onClick={() => setShowAddUserModal(false)}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

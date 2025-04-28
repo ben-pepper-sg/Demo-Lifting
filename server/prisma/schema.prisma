@@ -8,21 +8,21 @@ datasource db {
 }
 
 model User {
-  id                  String            @id @default(uuid())
-  email               String            @unique
-  passwordHash        String
-  firstName           String
-  lastName            String
-  role                UserRole          @default(USER)
-  maxBench            Float?
-  maxOHP              Float?
-  maxSquat            Float?
-  maxDeadlift         Float?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  bookings            Booking[]
-  coached             Schedule[]        @relation("Coach")
-  defaultSchedules    DefaultSchedule[] @relation("Coach")
+  id               String            @id @default(uuid())
+  email            String            @unique
+  passwordHash     String
+  firstName        String
+  lastName         String
+  role             UserRole          @default(USER)
+  maxBench         Float?
+  maxOHP           Float?
+  maxSquat         Float?
+  maxDeadlift      Float?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  bookings         Booking[]
+  defaultSchedules DefaultSchedule[] @relation("Coach")
+  coached          Schedule[]        @relation("Coach")
 }
 
 model Program {
@@ -100,16 +100,16 @@ model WorkoutLog {
 }
 
 model DefaultSchedule {
-  id          String    @id @default(uuid())
-  dayOfWeek   Int       // 0=Sunday, 1=Monday, etc.
-  time        String    // stored as HH:MM
-  capacity    Int       @default(8)
+  id          String   @id @default(uuid())
+  dayOfWeek   Int
+  time        String
+  capacity    Int      @default(8)
   workoutType LiftType
-  isActive    Boolean   @default(true)
+  isActive    Boolean  @default(true)
   coachId     String
-  coach       User      @relation("Coach", fields: [coachId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  coach       User     @relation("Coach", fields: [coachId], references: [id])
 }
 
 enum UserRole {

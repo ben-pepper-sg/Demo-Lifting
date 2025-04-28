@@ -1,26 +1,17 @@
 import { Request, Response } from 'express';
 import { prisma } from '../index';
-import * as Sentry from '@sentry/node';
-import { startTransaction } from '@sentry/node';
+// Error monitoring removed
 
 // Get all workouts for a specific user
 export const getUserWorkouts = async (req: Request, res: Response) => {
-  // Start a Sentry transaction for performance monitoring
-  const transaction = startTransaction({
-    name: 'getUserWorkouts',
-    op: 'controller',
-  });
-  
-  // Set transaction tags
-  transaction.setTag('controller', 'workout');
-  transaction.setTag('endpoint', 'getUserWorkouts');
+  // Performance monitoring removed
   
   try {
     const userId = req.user?.userId;
     const { liftType, startDate, endDate } = req.query;
     
-    // Add context for better error tracking
-    Sentry.setContext('workouts_request', {
+    // Request details for debugging
+    console.debug('Workouts request:', {
       userId,
       liftType,
       startDate,
@@ -28,8 +19,6 @@ export const getUserWorkouts = async (req: Request, res: Response) => {
     });
     
     if (!userId) {
-      transaction.setStatus('user_error');
-      transaction.finish();
       return res.status(401).json({ error: 'User not authenticated' });
     }
     
@@ -49,40 +38,24 @@ export const getUserWorkouts = async (req: Request, res: Response) => {
       },
     });
     
-    // Add a span for the database query
-    const span = transaction.startChild({
-      op: 'db.query',
-      description: 'Fetch user workouts',
-    });
-    span.finish();
-    
-    // Set transaction status and finish
-    transaction.setStatus('ok');
-    transaction.finish();
+    // Fetch completed
     
     return res.status(200).json({ workouts });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get workouts error:', error);
     
-    // Capture the error with context
-    Sentry.captureException(error, {
-      tags: {
-        section: 'workout_controller',
-        operation: 'getUserWorkouts',
+    // Log error details
+    console.error('Get user workouts error:', {
+      section: 'workout_controller',
+      operation: 'getUserWorkouts',
+      filters: {
+        liftType: req.query.liftType,
+        startDate: req.query.startDate,
+        endDate: req.query.endDate,
       },
-      extra: {
-        filters: {
-          liftType: req.query.liftType,
-          startDate: req.query.startDate,
-          endDate: req.query.endDate,
-        },
-        userId: req.user?.userId,
-      },
+      userId: req.user?.userId,
+      error: error.message
     });
-    
-    // Set transaction status and finish
-    transaction.setStatus('internal_error');
-    transaction.finish();
     
     return res.status(500).json({ error: 'Failed to get workout data' });
   }
@@ -114,7 +87,7 @@ export const logWorkout = async (req: Request, res: Response) => {
       message: 'Workout logged successfully',
       workout,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Log workout error:', error);
     return res.status(500).json({ error: 'Failed to log workout' });
   }
@@ -234,7 +207,7 @@ export const calculateLiftWeight = async (req: Request, res: Response) => {
       percentage: Number(percentage),
       calculatedWeight: Math.round(weight * 2) / 2, // Round to nearest 0.5
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Calculate lift weight error:', error);
     return res.status(500).json({ error: 'Failed to calculate lift weight' });
   }
@@ -242,36 +215,24 @@ export const calculateLiftWeight = async (req: Request, res: Response) => {
 
 // Get lift progression over time
 export const getLiftProgression = async (req: Request, res: Response) => {
-  // Start a Sentry transaction for performance monitoring
-  const transaction = startTransaction({
-    name: 'getLiftProgression',
-    op: 'controller',
-  });
-  
-  // Set transaction tags for easier filtering
-  transaction.setTag('controller', 'workout');
-  transaction.setTag('endpoint', 'getLiftProgression');
+  // Performance monitoring removed
   
   try {
     const userId = req.user?.userId;
     const { liftType, timeframe } = req.query;
     
-    // Add information about the request to Sentry
-    Sentry.setContext('request_params', {
+    // Log request details
+    console.debug('Lift progression request:', {
       userId,
       liftType,
       timeframe,
     });
     
     if (!userId) {
-      transaction.setStatus('user_error');
-      transaction.finish();
       return res.status(401).json({ error: 'User not authenticated' });
     }
     
     if (!liftType) {
-      transaction.setStatus('user_error');
-      transaction.finish();
       return res.status(400).json({ error: 'LiftType is required' });
     }
     
@@ -311,12 +272,6 @@ export const getLiftProgression = async (req: Request, res: Response) => {
       },
     });
     
-    // Add span for database operation to measure performance
-    const span = transaction.startChild({
-      op: 'db.query',
-      description: 'Fetch workout logs',
-    });
-      
     const result = { 
       workouts,
       timeframe: String(timeframe) || '3M',
@@ -325,31 +280,19 @@ export const getLiftProgression = async (req: Request, res: Response) => {
       endDate,
     };
     
-    // Finish db span and transaction
-    span.finish();
-    transaction.setStatus('ok');
-    transaction.finish();
-    
     return res.status(200).json(result);
-  } catch (error) {
+  } catch (error: any) {
     console.error('Get lift progression error:', error);
     
-    // Capture the error in Sentry with useful context
-    Sentry.captureException(error, {
-      tags: {
-        section: 'workout_controller',
-        operation: 'getLiftProgression',
-      },
-      extra: {
-        liftType: req.query.liftType,
-        timeframe: req.query.timeframe,
-        userId: req.user?.userId,
-      },
+    // Log error details
+    console.error('Lift progression error details:', {
+      section: 'workout_controller',
+      operation: 'getLiftProgression',
+      liftType: req.query.liftType,
+      timeframe: req.query.timeframe,
+      userId: req.user?.userId,
+      error: error.message
     });
-    
-    // Set transaction status and finish it
-    transaction.setStatus('internal_error');
-    transaction.finish();
     
     return res.status(500).json({ error: 'Failed to get lift progression data' });
   }

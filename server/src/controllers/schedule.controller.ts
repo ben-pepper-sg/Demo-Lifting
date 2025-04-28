@@ -270,7 +270,7 @@ export const cancelBooking = async (req: Request, res: Response) => {
       });
       
       if (schedule) {
-        // Ensure we don't exceed the maximum capacity of 8
+        // Ensure we don't go below 0 participants
         const newParticipantCount = Math.max(0, schedule.currentParticipants - 1);
         
         await prisma.schedule.update({

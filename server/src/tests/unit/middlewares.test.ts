@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { authMiddleware, adminMiddleware } from '../../middlewares/auth.middleware';
+import { authenticate as authMiddleware, authorizeAdmin as adminMiddleware } from '../../middleware/auth.middleware';
 
 // Mock express request, response, and next function
 const mockRequest = (headers = {}) => {

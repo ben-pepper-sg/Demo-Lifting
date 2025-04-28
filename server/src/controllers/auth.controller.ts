@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { prisma } from '../index';
 
 export const register = async (req: Request, res: Response) => {
@@ -31,10 +31,12 @@ export const register = async (req: Request, res: Response) => {
     });
 
     // Create and sign JWT token
+    const expiresIn = process.env.JWT_EXPIRES_IN || '1d';
+    const options: SignOptions = { expiresIn };
     const token = jwt.sign(
       { userId: newUser.id, role: newUser.role },
-      process.env.JWT_SECRET as string,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      options
     );
 
     // Return user data without password
@@ -48,6 +50,48 @@ export const register = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Registration error:', error);
     return res.status(500).json({ error: 'Failed to register user' });
+  }
+};
+
+// Admin function to create a new user
+export const adminCreateUser = async (req: Request, res: Response) => {
+  try {
+    const { email, password, firstName, lastName, role } = req.body;
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+
+    // Hash the password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Create new user with optional role
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        firstName,
+        lastName,
+        role: role || 'USER', // Default to USER if not specified
+      },
+    });
+
+    // Return user data without password
+    const { passwordHash: _, ...userData } = newUser;
+    
+    return res.status(201).json({
+      message: 'User created successfully',
+      user: userData,
+    });
+  } catch (error) {
+    console.error('Admin create user error:', error);
+    return res.status(500).json({ error: 'Failed to create user' });
   }
 };
 
@@ -72,10 +116,12 @@ export const login = async (req: Request, res: Response) => {
     }
 
     // Create and sign JWT token
+    const expiresIn = process.env.JWT_EXPIRES_IN || '1d';
+    const options: SignOptions = { expiresIn };
     const token = jwt.sign(
       { userId: user.id, role: user.role },
-      process.env.JWT_SECRET as string,
-      { expiresIn: process.env.JWT_EXPIRES_IN }
+      process.env.JWT_SECRET || 'fallback-secret-key',
+      options
     );
 
     // Return user data without password
