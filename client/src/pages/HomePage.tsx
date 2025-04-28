@@ -128,6 +128,9 @@ const HomePage: React.FC = () => {
         <h2 className="text-3xl font-bold text-center mb-8">Schedule</h2>
         <div className="card">
           <h3 className="text-xl font-semibold mb-4">Weekly Class Schedule</h3>
+          <p className="text-gray-600 mb-4">
+            We offer a consistent weekly schedule with classes at the same times each week. Simply select a time that works for you through our booking system.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-medium text-lg mb-2">Monday (Upper Body)</h4>
@@ -194,9 +197,14 @@ const HomePage: React.FC = () => {
             Book a Session
           </Link>
         ) : (
-          <Link to="/register" className="btn-primary text-lg py-3 px-8">
-            Sign Up Now
-          </Link>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link to="/login" className="btn-primary text-lg py-3 px-8">
+              Sign In
+            </Link>
+            <Link to="/register" className="btn-secondary text-lg py-3 px-8">
+              Register
+            </Link>
+          </div>
         )}
       </section>
     </div>

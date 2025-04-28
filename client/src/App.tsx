@@ -7,9 +7,11 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import SchedulePage from './pages/SchedulePage';
+import DefaultSchedulePage from './pages/DefaultSchedulePage';
 import ProfilePage from './pages/ProfilePage';
 import ClassViewPage from './pages/ClassViewPage';
 import AdminPage from './pages/AdminPage';
+import DefaultScheduleAdminPage from './pages/DefaultScheduleAdminPage';
 import LiftProgressPage from './pages/LiftProgressPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
@@ -30,6 +32,11 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="schedule" element={
+            <ProtectedRoute>
+              <DefaultSchedulePage />
+            </ProtectedRoute>
+          } />
+          <Route path="schedule/old" element={
             <ProtectedRoute>
               <SchedulePage />
             </ProtectedRoute>
@@ -52,6 +59,11 @@ function App() {
           <Route path="admin" element={
             <AdminRoute>
               <AdminPage />
+            </AdminRoute>
+          } />
+          <Route path="admin/default-schedule" element={
+            <AdminRoute>
+              <DefaultScheduleAdminPage />
             </AdminRoute>
           } />
         </Route>

@@ -68,9 +68,19 @@ export const scheduleService = {
   deleteSchedule: (id: string) => api.delete(`/schedule/${id}`),
 };
 
+// Default schedule services
+export const defaultScheduleService = {
+  getAllDefaultSchedules: () => api.get('/default-schedule'),
+  createScheduleFromDefault: (data: { defaultScheduleId: string, date: string }) => 
+    api.post('/default-schedule/create-schedule', data),
+  upsertDefaultSchedule: (data: any) => api.post('/default-schedule/admin', data),
+  deleteDefaultSchedule: (id: string) => api.delete(`/default-schedule/admin/${id}`),
+};
+
 export default {
   auth: authService,
   users: userService,
   workouts: workoutService,
   schedule: scheduleService,
+  defaultSchedule: defaultScheduleService,
 };

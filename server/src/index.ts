@@ -3,9 +3,7 @@ import cors from 'cors';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import * as Sentry from '@sentry/node';
-import { ProfilingIntegration } from '@sentry/profiling-node';
-import { Express } from '@sentry/integrations';
+// Error monitoring removed
 
 // Load environment variables
 dotenv.config();
@@ -18,31 +16,16 @@ import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import workoutRoutes from './routes/workout.routes';
 import scheduleRoutes from './routes/schedule.routes';
+import defaultScheduleRoutes from './routes/defaultSchedule.routes';
 
 // Initialize Express app
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Initialize Sentry
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  integrations: [
-    // Enable Express.js middleware tracing
-    new Express({ app }),
-    new ProfilingIntegration(),
-  ],
-  // Set tracesSampleRate to 1.0 to capture 100% of transactions for performance monitoring
-  tracesSampleRate: 1.0,
-  // Enable profiling
-  profilesSampleRate: 1.0,
-});
+// Error monitoring initialization removed
 
 // Middleware
-// RequestHandler creates a separate execution context, so that all errors caught
-// by Sentry also have the request data
-app.use(Sentry.Handlers.requestHandler());
-// TracingHandler creates a trace for every incoming request
-app.use(Sentry.Handlers.tracingHandler());
+// Error monitoring middleware removed
 
 app.use(cors());
 app.use(express.json());
@@ -61,15 +44,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/workouts', workoutRoutes);
 app.use('/api/schedule', scheduleRoutes);
+app.use('/api/default-schedule', defaultScheduleRoutes);
 app.use('/api/admin', adminRoutes);
 
-// The Sentry error handler must be before any other error middleware
-app.use(Sentry.Handlers.errorHandler());
+// Error handler middleware removed
 
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  // Capture exception in Sentry
-  Sentry.captureException(err);
+  // Error logging removed
   console.error(err.stack);
   res.status(500).json({
     error: 'Internal Server Error',

@@ -8,26 +8,21 @@ datasource db {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  email        String    @unique
-  passwordHash String
-  firstName    String
-  lastName     String
-  role         UserRole  @default(USER)
-  maxBench     Float?
-  maxOHP       Float?
-  maxSquat     Float?
-  maxDeadlift  Float?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  bookings     Booking[]
-  coached      Schedule[] @relation("Coach")
-}
-
-enum UserRole {
-  USER
-  ADMIN
-  COACH
+  id                  String            @id @default(uuid())
+  email               String            @unique
+  passwordHash        String
+  firstName           String
+  lastName            String
+  role                UserRole          @default(USER)
+  maxBench            Float?
+  maxOHP              Float?
+  maxSquat            Float?
+  maxDeadlift         Float?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  bookings            Booking[]
+  coached             Schedule[]        @relation("Coach")
+  defaultSchedules    DefaultSchedule[] @relation("Coach")
 }
 
 model Program {
@@ -41,34 +36,91 @@ model Program {
 }
 
 model WorkoutScheme {
-  id         String      @id @default(uuid())
-  programId  String
-  program    Program     @relation(fields: [programId], references: [id])
-  week       Int
-  day        Int
-  liftType   LiftType
-  sets       Int[]
-  reps       Int[]
-  percentages Float[]
-  restTime   Int         // in seconds
-  supplementalWorkouts String[] // JSON array of workout IDs
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id                   String   @id @default(uuid())
+  programId            String
+  week                 Int
+  day                  Int
+  liftType             LiftType
+  sets                 Int[]
+  reps                 Int[]
+  percentages          Float[]
+  restTime             Int
+  supplementalWorkouts String[]
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  program              Program  @relation(fields: [programId], references: [id])
+}
+
+model SupplementalWorkout {
+  id          String          @id @default(uuid())
+  name        String
+  category    WorkoutCategory
+  bodyPart    BodyPart
+  description String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model Schedule {
+  id                  String    @id @default(uuid())
+  date                DateTime
+  time                String
+  capacity            Int       @default(8)
+  currentParticipants Int       @default(0)
+  coachId             String
+  workoutType         LiftType
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  bookings            Booking[]
+  coach               User      @relation("Coach", fields: [coachId], references: [id])
+}
+
+model Booking {
+  id          String    @id @default(uuid())
+  scheduleId  String
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workoutType LiftType?
+  schedule    Schedule  @relation(fields: [scheduleId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model WorkoutLog {
+  id        String   @id @default(uuid())
+  userId    String
+  liftType  String
+  weight    Float
+  reps      Int
+  sets      Int
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model DefaultSchedule {
+  id          String    @id @default(uuid())
+  dayOfWeek   Int       // 0=Sunday, 1=Monday, etc.
+  time        String    // stored as HH:MM
+  capacity    Int       @default(8)
+  workoutType LiftType
+  isActive    Boolean   @default(true)
+  coachId     String
+  coach       User      @relation("Coach", fields: [coachId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  COACH
 }
 
 enum LiftType {
   UPPER
   LOWER
-}
-
-model SupplementalWorkout {
-  id          String      @id @default(uuid())
-  name        String
-  category    WorkoutCategory
-  bodyPart    BodyPart
-  description String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 }
 
 enum WorkoutCategory {
@@ -86,42 +138,4 @@ enum BodyPart {
   QUADS
   HAMSTRINGS
   GLUTES
-}
-
-model Schedule {
-  id         String    @id @default(uuid())
-  date       DateTime
-  time       String    // stored as HH:MM
-  capacity   Int       @default(8)
-  currentParticipants Int @default(0)
-  coachId    String
-  coach      User      @relation("Coach", fields: [coachId], references: [id])
-  workoutType LiftType
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  bookings   Booking[]
-}
-
-model Booking {
-  id         String    @id @default(uuid())
-  scheduleId String
-  schedule   Schedule  @relation(fields: [scheduleId], references: [id])
-  userId     String
-  user       User      @relation(fields: [userId], references: [id])
-  workoutType LiftType? // Added for Friday/Saturday workout selection
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-}
-
-model WorkoutLog {
-  id         String    @id @default(uuid())
-  userId     String
-  liftType   String    // "BENCH", "OHP", "SQUAT", "DEADLIFT"
-  weight     Float
-  reps       Int
-  sets       Int
-  date       DateTime
-  notes      String?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
 }
