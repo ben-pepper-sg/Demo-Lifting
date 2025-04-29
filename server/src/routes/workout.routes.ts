@@ -7,7 +7,7 @@ import {
   calculateLiftWeight,
   getLiftProgression,
 } from '../controllers/workout.controller';
-import { authenticate } from '../middleware/auth.middleware';
+import { authenticate, authorizeAdmin } from '../middleware/auth.middleware';
 
 const router = express.Router();
 
@@ -17,8 +17,8 @@ router.get('/', authenticate, getUserWorkouts);
 // Log a new workout
 router.post('/', authenticate, logWorkout);
 
-// Update max lift values
-router.put('/max-lifts', authenticate, updateMaxLifts);
+// Update max lift values (admin only)
+router.put('/max-lifts', authenticate, authorizeAdmin, updateMaxLifts);
 
 // Get workout scheme for a specific week
 router.get('/scheme', getWorkoutScheme);

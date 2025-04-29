@@ -3,41 +3,14 @@ import { useAuth } from '../hooks/useAuth';
 import { workoutService } from '../services/api';
 import { roundToNearest5 } from '../utils/helpers';
 
-type MaxLiftsFormData = {
-  maxBench: string;
-  maxOHP: string;
-  maxSquat: string;
-  maxDeadlift: string;
-};
-
 const DashboardPage: React.FC = () => {
-  const { user, updateMaxLifts } = useAuth();
-  const [maxLiftsForm, setMaxLiftsForm] = useState<MaxLiftsFormData>({
-    maxBench: user?.maxBench?.toString() || '',
-    maxOHP: user?.maxOHP?.toString() || '',
-    maxSquat: user?.maxSquat?.toString() || '',
-    maxDeadlift: user?.maxDeadlift?.toString() || '',
-  });
+  const { user } = useAuth();
   const [weekNumber, setWeekNumber] = useState<number>(1);
   const [workoutScheme, setWorkoutScheme] = useState<any>(null);
   const [calculatedWeights, setCalculatedWeights] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
-  useEffect(() => {
-    if (user) {
-      setMaxLiftsForm({
-        maxBench: user.maxBench?.toString() || '',
-        maxOHP: user.maxOHP?.toString() || '',
-        maxSquat: user.maxSquat?.toString() || '',
-        maxDeadlift: user.maxDeadlift?.toString() || '',
-      });
-    }
-  }, [user]);
 
-  useEffect(() => {
-    fetchWorkoutScheme();
-  }, [weekNumber, fetchWorkoutScheme]);
 
   const fetchWorkoutScheme = React.useCallback(async () => {
     try {
@@ -60,6 +33,10 @@ const DashboardPage: React.FC = () => {
       console.error('Failed to fetch workout scheme:', err);
     }
   }, [weekNumber, user]);  // Add dependencies
+
+  useEffect(() => {
+    fetchWorkoutScheme();
+  }, [fetchWorkoutScheme]);
 
   const calculateWeights = async (scheme: any) => {
     if (!scheme) return;
@@ -104,33 +81,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const handleMaxLiftsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setMaxLiftsForm({ ...maxLiftsForm, [name]: value });
-  };
 
-  const handleMaxLiftsSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError('');
-    
-    try {
-      await updateMaxLifts({
-        maxBench: maxLiftsForm.maxBench ? parseFloat(maxLiftsForm.maxBench) : undefined,
-        maxOHP: maxLiftsForm.maxOHP ? parseFloat(maxLiftsForm.maxOHP) : undefined,
-        maxSquat: maxLiftsForm.maxSquat ? parseFloat(maxLiftsForm.maxSquat) : undefined,
-        maxDeadlift: maxLiftsForm.maxDeadlift ? parseFloat(maxLiftsForm.maxDeadlift) : undefined,
-      });
-      
-      if (workoutScheme) {
-        calculateWeights(workoutScheme);
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update max lifts');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div>
@@ -244,71 +195,34 @@ const DashboardPage: React.FC = () => {
               </div>
             )}
             
-            <form onSubmit={handleMaxLiftsSubmit}>
-              <div className="mb-4">
-                <label htmlFor="maxBench" className="form-label">Bench Press (lbs)</label>
-                <input
-                  type="number"
-                  id="maxBench"
-                  name="maxBench"
-                  className="form-input"
-                  value={maxLiftsForm.maxBench}
-                  onChange={handleMaxLiftsChange}
-                  min="0"
-                  step="5"
-                />
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="font-medium text-gray-700">Bench Press:</label>
+                <div className="text-2xl font-bold">{user?.maxBench || 'Not set'} lbs</div>
               </div>
               
-              <div className="mb-4">
-                <label htmlFor="maxOHP" className="form-label">Overhead Press (lbs)</label>
-                <input
-                  type="number"
-                  id="maxOHP"
-                  name="maxOHP"
-                  className="form-input"
-                  value={maxLiftsForm.maxOHP}
-                  onChange={handleMaxLiftsChange}
-                  min="0"
-                  step="5"
-                />
+              <div>
+                <label className="font-medium text-gray-700">Overhead Press:</label>
+                <div className="text-2xl font-bold">{user?.maxOHP || 'Not set'} lbs</div>
               </div>
               
-              <div className="mb-4">
-                <label htmlFor="maxSquat" className="form-label">Back Squat (lbs)</label>
-                <input
-                  type="number"
-                  id="maxSquat"
-                  name="maxSquat"
-                  className="form-input"
-                  value={maxLiftsForm.maxSquat}
-                  onChange={handleMaxLiftsChange}
-                  min="0"
-                  step="5"
-                />
+              <div>
+                <label className="font-medium text-gray-700">Back Squat:</label>
+                <div className="text-2xl font-bold">{user?.maxSquat || 'Not set'} lbs</div>
               </div>
               
-              <div className="mb-6">
-                <label htmlFor="maxDeadlift" className="form-label">Deadlift (lbs)</label>
-                <input
-                  type="number"
-                  id="maxDeadlift"
-                  name="maxDeadlift"
-                  className="form-input"
-                  value={maxLiftsForm.maxDeadlift}
-                  onChange={handleMaxLiftsChange}
-                  min="0"
-                  step="5"
-                />
+              <div>
+                <label className="font-medium text-gray-700">Deadlift:</label>
+                <div className="text-2xl font-bold">{user?.maxDeadlift || 'Not set'} lbs</div>
               </div>
-              
-              <button
-                type="submit"
-                className="btn-primary w-full"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Updating...' : 'Update Max Lifts'}
-              </button>
-            </form>
+            </div>
+            
+            <div className="bg-gray-100 p-4 rounded-md">
+              <p className="text-gray-600 text-sm">
+                <i className="fas fa-info-circle mr-2"></i>
+                Max lifts can only be updated by your coach or admin. Please contact them if you need to update these values.
+              </p>
+            </div>
           </div>
         </div>
       </div>
