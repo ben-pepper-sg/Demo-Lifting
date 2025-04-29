@@ -32,6 +32,7 @@ const DefaultSchedulePage: React.FC = () => {
   const [isBooking, setIsBooking] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
+  const [showNewTimeslotNotice, setShowNewTimeslotNotice] = useState<boolean>(true);
   
   // For Friday/Saturday handling
   const [showWorkoutTypeModal, setShowWorkoutTypeModal] = useState<boolean>(false);
@@ -179,6 +180,28 @@ const DefaultSchedulePage: React.FC = () => {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Class Schedule</h1>
+      
+      {/* New timeslot notification */}
+      {showNewTimeslotNotice && (
+        <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="py-1"><svg className="h-6 w-6 mr-4 fill-current text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/></svg></div>
+              <div className="font-bold">New Timeslot Added!</div>
+            </div>
+            <button 
+              onClick={() => setShowNewTimeslotNotice(false)}
+              className="text-blue-500 hover:text-blue-700"
+              aria-label="Dismiss notification"
+            >
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          <p className="ml-10">A new Tuesday class at 2:00 PM (Lower Body) is now available for booking.</p>
+        </div>
+      )}
       
       {/* Workout Type Selection Modal */}
       {showWorkoutTypeModal && (
