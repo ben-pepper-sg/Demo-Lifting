@@ -1,228 +1,80 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { workoutService } from '../services/api';
-import { roundToNearest5 } from '../utils/helpers';
+import { Link } from 'react-router-dom';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
-  const [weekNumber, setWeekNumber] = useState<number>(1);
-  const [workoutScheme, setWorkoutScheme] = useState<any>(null);
-  const [calculatedWeights, setCalculatedWeights] = useState<any>(null);
-  const [error, setError] = useState<string>('');
-
-
-
-  const fetchWorkoutScheme = React.useCallback(async () => {
-    try {
-      // Get the current day of the week (1-7, Sunday is 0)
-      const today = new Date().getDay() || 7; // Convert Sunday from 0 to 7
-      const day = today <= 5 ? today : 1; // Default to Monday if weekend
-      
-      const response = await workoutService.getWorkoutScheme({
-        week: weekNumber,
-        day,
-        liftType: day % 2 === 1 ? 'UPPER' : 'LOWER', // Odd days are upper, even are lower
-      });
-      
-      setWorkoutScheme(response.data.scheme);
-      
-      if (user && user.maxBench && user.maxOHP && user.maxSquat && user.maxDeadlift) {
-        calculateWeights(response.data.scheme);
-      }
-    } catch (err) {
-      console.error('Failed to fetch workout scheme:', err);
-    }
-  }, [weekNumber, user]);  // Add dependencies
-
-  useEffect(() => {
-    fetchWorkoutScheme();
-  }, [fetchWorkoutScheme]);
-
-  const calculateWeights = async (scheme: any) => {
-    if (!scheme) return;
-    
-    try {
-      const liftType = scheme.liftType;
-      const percentages = scheme.percentages;
-      
-      if (liftType === 'UPPER') {
-        const benchResponse = await workoutService.calculateWeight({
-          liftType: 'BENCH',
-          percentage: percentages[0],
-        });
-        
-        const ohpResponse = await workoutService.calculateWeight({
-          liftType: 'OHP',
-          percentage: percentages[0],
-        });
-        
-        setCalculatedWeights({
-          bench: benchResponse.data.calculatedWeight,
-          ohp: ohpResponse.data.calculatedWeight,
-        });
-      } else {
-        const squatResponse = await workoutService.calculateWeight({
-          liftType: 'SQUAT',
-          percentage: percentages[0],
-        });
-        
-        const deadliftResponse = await workoutService.calculateWeight({
-          liftType: 'DEADLIFT',
-          percentage: percentages[0],
-        });
-        
-        setCalculatedWeights({
-          squat: squatResponse.data.calculatedWeight,
-          deadlift: deadliftResponse.data.calculatedWeight,
-        });
-      }
-    } catch (err) {
-      console.error('Failed to calculate weights:', err);
-    }
-  };
-
-
 
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2">
-          <div className="card mb-6">
-            <h2 className="text-2xl font-semibold mb-4">Current Program: Week {weekNumber}</h2>
-            
-            <div className="flex space-x-2 mb-4">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((week) => (
-                <button
-                  key={week}
-                  onClick={() => setWeekNumber(week)}
-                  className={`px-3 py-1 rounded-md ${weekNumber === week ? 'bg-primary-600 text-white' : 'bg-gray-200'}`}
-                >
-                  {week}
-                </button>
-              ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="card p-6">
+          <h2 className="text-2xl font-semibold mb-4">Welcome, {user?.firstName}!</h2>
+          <p className="text-gray-600 mb-4">
+            Your TFW MMA lifting program dashboard helps you stay on track with your training. 
+            Here's what you can do:
+          </p>
+          
+          <div className="space-y-4">
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-medium">Your Profile</h3>
+                <p className="text-sm text-gray-500">View your max lifts and today's workout scheme</p>
+              </div>
             </div>
             
-            {workoutScheme ? (
-              <div>
-                <div className="mb-4">
-                  <h3 className="text-lg font-medium mb-2">
-                    {workoutScheme.liftType === 'UPPER' ? 'Upper Body Day' : 'Lower Body Day'}
-                  </h3>
-                  <p className="text-gray-600 mb-2">
-                    <strong>Rep Scheme:</strong> {workoutScheme.reps.join(', ')}
-                  </p>
-                  <p className="text-gray-600 mb-2">
-                    <strong>Percentages:</strong> {workoutScheme.percentages.map((p: number) => p + '%').join(', ')}
-                  </p>
-                  <p className="text-gray-600">
-                    <strong>Rest Time:</strong> {workoutScheme.restTime / 60} minutes
-                  </p>
-                </div>
-                
-                {calculatedWeights && (
-                  <div className="bg-gray-50 p-4 rounded-md">
-                    <h3 className="text-lg font-medium mb-3">Your Working Weights:</h3>
-                    
-                    {workoutScheme.liftType === 'UPPER' ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <p className="font-semibold">Bench Press:</p>
-                          <ul className="list-disc list-inside">
-                            {workoutScheme.percentages.map((percentage: number, index: number) => (
-                              <li key={index}>
-                              Set {index + 1}: {roundToNearest5(calculatedWeights.bench * percentage / workoutScheme.percentages[0])} lbs
-                              ({workoutScheme.reps[index]} reps)
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="font-semibold">Overhead Press:</p>
-                          <ul className="list-disc list-inside">
-                            {workoutScheme.percentages.map((percentage: number, index: number) => (
-                              <li key={index}>
-                              Set {index + 1}: {roundToNearest5(calculatedWeights.ohp * percentage / workoutScheme.percentages[0])} lbs
-                              ({workoutScheme.reps[index]} reps)
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <p className="font-semibold">Back Squat:</p>
-                          <ul className="list-disc list-inside">
-                            {workoutScheme.percentages.map((percentage: number, index: number) => (
-                              <li key={index}>
-                              Set {index + 1}: {roundToNearest5(calculatedWeights.squat * percentage / workoutScheme.percentages[0])} lbs
-                              ({workoutScheme.reps[index]} reps)
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="font-semibold">Deadlift:</p>
-                          <ul className="list-disc list-inside">
-                            {workoutScheme.percentages.map((percentage: number, index: number) => (
-                              <li key={index}>
-                              Set {index + 1}: {roundToNearest5(calculatedWeights.deadlift * percentage / workoutScheme.percentages[0])} lbs
-                              ({workoutScheme.reps[index]} reps)
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
               </div>
-            ) : (
-              <p>Loading workout scheme...</p>
-            )}
+              <div>
+                <h3 className="font-medium">Schedule</h3>
+                <p className="text-sm text-gray-500">Book or view your upcoming classes</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-600 mr-3">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-medium">Progress Tracking</h3>
+                <p className="text-sm text-gray-500">Track your lifting progress over time</p>
+              </div>
+            </div>
           </div>
         </div>
         
-        <div>
-          <div className="card">
-            <h2 className="text-xl font-semibold mb-4">Your Max Lifts</h2>
-            
-            {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                {error}
-              </div>
-            )}
-            
-            <div className="space-y-4 mb-6">
-              <div>
-                <label className="font-medium text-gray-700">Bench Press:</label>
-                <div className="text-2xl font-bold">{user?.maxBench || 'Not set'} lbs</div>
-              </div>
-              
-              <div>
-                <label className="font-medium text-gray-700">Overhead Press:</label>
-                <div className="text-2xl font-bold">{user?.maxOHP || 'Not set'} lbs</div>
-              </div>
-              
-              <div>
-                <label className="font-medium text-gray-700">Back Squat:</label>
-                <div className="text-2xl font-bold">{user?.maxSquat || 'Not set'} lbs</div>
-              </div>
-              
-              <div>
-                <label className="font-medium text-gray-700">Deadlift:</label>
-                <div className="text-2xl font-bold">{user?.maxDeadlift || 'Not set'} lbs</div>
-              </div>
+        <div className="grid grid-cols-1 gap-4">
+          <div className="card p-6 hover:shadow-md transition-shadow">
+            <h2 className="text-xl font-semibold mb-2">Quick Links</h2>
+            <div className="space-y-3">
+              <Link to="/profile" className="btn-primary w-full block text-center">View Profile & Program</Link>
+              <Link to="/schedule" className="btn-primary w-full block text-center">Schedule Classes</Link>
+              <Link to="/progress" className="btn-primary w-full block text-center">View Progress</Link>
+              <Link to="/class" className="btn-primary w-full block text-center">Current Class</Link>
             </div>
-            
-            <div className="bg-gray-100 p-4 rounded-md">
-              <p className="text-gray-600 text-sm">
-                <i className="fas fa-info-circle mr-2"></i>
-                Max lifts can only be updated by your coach or admin. Please contact them if you need to update these values.
-              </p>
-            </div>
+          </div>
+          
+          <div className="card p-6 bg-gray-50">
+            <h2 className="text-xl font-semibold mb-2">Today's Focus</h2>
+            <p className="text-gray-600 mb-4">
+              {new Date().getDay() % 2 === 0 ? 'Lower Body Day' : 'Upper Body Day'}
+            </p>
+            <p className="text-gray-600">
+              Check your profile to see your personalized workout for today.  
+            </p>
           </div>
         </div>
       </div>
