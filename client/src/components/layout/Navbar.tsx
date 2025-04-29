@@ -2,6 +2,7 @@ import React, { Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { useAuth } from '../../hooks/useAuth';
+import ThemeToggle from '../common/ThemeToggle';
 
 const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
@@ -13,7 +14,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <Disclosure as="nav" className="bg-primary-600 shadow-lg">
+    <Disclosure as="nav" className="bg-primary-600 dark:bg-gray-800 shadow-lg">
       {({ open }) => (
         <>
           <div className="container mx-auto px-4">
@@ -60,12 +61,18 @@ const Navbar: React.FC = () => {
                 </div>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:items-center">
+                <ThemeToggle />
+                <div className="ml-3">
                 {user ? (
                   <Menu as="div" className="ml-3 relative">
                     <div>
                       <Menu.Button className="bg-primary-700 flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-primary-700 focus:ring-white">
                         <span className="sr-only">Open user menu</span>
-                        <div className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                        <div 
+                          className="h-8 w-8 rounded-full bg-primary-500 flex items-center justify-center text-white"
+                          aria-hidden="true" 
+                          role="img"
+                        >
                           {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                         </div>
                       </Menu.Button>
@@ -79,12 +86,12 @@ const Navbar: React.FC = () => {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
                         <Menu.Item>
                           {({ active }) => (
                             <Link
                               to="/profile"
-                              className={`${active ? 'bg-gray-100' : ''} block px-4 py-2 text-sm text-gray-700`}
+                              className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block px-4 py-2 text-sm text-gray-700 dark:text-gray-300`}
                             >
                               Profile
                             </Link>
@@ -95,7 +102,7 @@ const Navbar: React.FC = () => {
                             {({ active }) => (
                               <Link
                                 to="/admin"
-                                className={`${active ? 'bg-gray-100' : ''} block px-4 py-2 text-sm text-gray-700`}
+                                className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block px-4 py-2 text-sm text-gray-700 dark:text-gray-300`}
                               >
                                 Admin
                               </Link>
@@ -106,7 +113,7 @@ const Navbar: React.FC = () => {
                           {({ active }) => (
                             <button
                               onClick={handleLogout}
-                              className={`${active ? 'bg-gray-100' : ''} block w-full text-left px-4 py-2 text-sm text-gray-700`}
+                              className={`${active ? 'bg-gray-100 dark:bg-gray-700' : ''} block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300`}
                             >
                               Sign out
                             </button>
@@ -131,8 +138,10 @@ const Navbar: React.FC = () => {
                     </Link>
                   </div>
                 )}
+                </div>
               </div>
               <div className="-mr-2 flex items-center sm:hidden">
+                <ThemeToggle />
                 <Disclosure.Button className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-gray-200 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
                   <span className="sr-only">Open main menu</span>
                   {open ? (
@@ -220,7 +229,11 @@ const Navbar: React.FC = () => {
                 <>
                   <div className="flex items-center px-5">
                     <div className="flex-shrink-0">
-                      <div className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white">
+                      <div 
+                        className="h-10 w-10 rounded-full bg-primary-500 flex items-center justify-center text-white"
+                        aria-hidden="true"
+                        role="img"
+                      >
                         {user.firstName.charAt(0)}{user.lastName.charAt(0)}
                       </div>
                     </div>

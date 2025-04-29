@@ -6,8 +6,9 @@ import Footer from './Footer';
 const Layout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
+      <main id="main-content" className="flex-grow container mx-auto px-4 py-8">
         <Outlet />
       </main>
       <Footer />

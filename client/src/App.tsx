@@ -1,6 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './hooks/useAuth';
+import { ThemeProvider } from './hooks/useTheme';
 import Layout from './components/layout/Layout';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
@@ -22,8 +23,9 @@ import AdminRoute from './components/auth/AdminRoute';
 function App() {
   return (
     <AuthProvider>
-      <Routes>
-        <Route path="/" element={<Layout />}>
+      <ThemeProvider>
+        <Routes>
+          <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
@@ -76,8 +78,9 @@ function App() {
               <SupplementalWorkoutAdminPage />
             </AdminRoute>
           } />
-        </Route>
-      </Routes>
+          </Route>
+        </Routes>
+      </ThemeProvider>
     </AuthProvider>
   );
 }
