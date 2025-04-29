@@ -39,19 +39,34 @@ export const generateTestToken = (userId: string, isAdmin: boolean = false) => {
 };
 
 // Create test app
-export const createTestApp = (router: express.Router) => {
+export const createTestApp = (router: express.Router, prefix: string = '') => {
   const app = express();
   app.use(express.json());
-  app.use('/api', router);
+  // Use the router with appropriate prefix
+  if (prefix === 'auth') {
+    app.use('/api/auth', router);
+  } else if (prefix === 'admin') {
+    app.use('/api/admin', router);
+  } else if (prefix === 'workouts') {
+    app.use('/api/workouts', router);
+  } else {
+    app.use('/api', router);
+  }
   return app;
 };
 
 // Create authenticated request
 export const authenticatedRequest = (app: express.Application, userId: string, isAdmin: boolean = false) => {
   const token = generateTestToken(userId, isAdmin);
-  const req = request(app);
-  // @ts-ignore
-  return req.set('Authorization', `Bearer ${token}`);
+  // Return a function that accepts the method and endpoint and sets the Authorization header
+  return (method: 'get' | 'post' | 'put' | 'delete', endpoint: string, data?: any) => {
+    const req = request(app)[method](endpoint);
+    req.set('Authorization', `Bearer ${token}`);
+    if (data) {
+      return req.send(data);
+    }
+    return req;
+  };
 };
 
 // Test data generators

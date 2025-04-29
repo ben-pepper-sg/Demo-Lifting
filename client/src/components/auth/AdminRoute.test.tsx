@@ -41,6 +41,8 @@ describe('AdminRoute', () => {
       register: jest.fn(),
       logout: jest.fn(),
       updateMaxLifts: jest.fn(),
+      requestPasswordReset: jest.fn(),
+      resetPassword: jest.fn(),
     });
 
     renderComponent(<div>Admin Content</div>);
@@ -58,6 +60,8 @@ describe('AdminRoute', () => {
       register: jest.fn(),
       logout: jest.fn(),
       updateMaxLifts: jest.fn(),
+      requestPasswordReset: jest.fn(),
+      resetPassword: jest.fn(),
     });
 
     renderComponent(<div>Admin Content</div>);
@@ -82,6 +86,8 @@ describe('AdminRoute', () => {
       register: jest.fn(),
       logout: jest.fn(),
       updateMaxLifts: jest.fn(),
+      requestPasswordReset: jest.fn(),
+      resetPassword: jest.fn(),
     });
 
     renderComponent(<div>Admin Content</div>);
@@ -105,6 +111,8 @@ describe('AdminRoute', () => {
       register: jest.fn(),
       logout: jest.fn(),
       updateMaxLifts: jest.fn(),
+      requestPasswordReset: jest.fn(),
+      resetPassword: jest.fn(),
     });
 
     renderComponent(<div>Admin Content</div>);

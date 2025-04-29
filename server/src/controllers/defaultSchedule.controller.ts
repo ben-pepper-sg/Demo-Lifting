@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 
 // Get all default schedules
 export const getAllDefaultSchedules = async (req: Request, res: Response) => {

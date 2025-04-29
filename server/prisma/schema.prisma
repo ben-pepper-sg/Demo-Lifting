@@ -20,6 +20,8 @@ model User {
   maxDeadlift      Float?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
+  resetToken       String?
+  resetTokenExpiry DateTime?
   bookings         Booking[]
   defaultSchedules DefaultSchedule[] @relation("Coach")
   coached          Schedule[]        @relation("Coach")
@@ -59,6 +61,17 @@ model SupplementalWorkout {
   description String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
+  exercises   Exercise[]      @relation("WorkoutExercises")
+}
+
+model Exercise {
+  id                    String              @id @default(uuid())
+  name                  String
+  description           String?
+  supplementalWorkoutId String
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  supplementalWorkout   SupplementalWorkout @relation("WorkoutExercises", fields: [supplementalWorkoutId], references: [id], onDelete: Cascade)
 }
 
 model Schedule {

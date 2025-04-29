@@ -2,12 +2,22 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { supplementalWorkoutService } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 
+type Exercise = {
+  id: string;
+  name: string;
+  description?: string;
+  supplementalWorkoutId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 type SupplementalWorkout = {
   id: string;
   name: string;
   category: 'UPPER' | 'LOWER';
   bodyPart: string;
   description?: string;
+  exercises: Exercise[];
 };
 
 const SupplementalWorkoutAdminPage: React.FC = () => {
@@ -25,6 +35,17 @@ const SupplementalWorkoutAdminPage: React.FC = () => {
     bodyPart: 'BICEPS',
     description: '',
   });
+  
+  const [exerciseFormData, setExerciseFormData] = useState({
+    id: '',
+    name: '',
+    description: '',
+    supplementalWorkoutId: '',
+  });
+  
+  const [selectedWorkout, setSelectedWorkout] = useState<SupplementalWorkout | null>(null);
+  const [isAddingExercise, setIsAddingExercise] = useState(false);
+  const [isEditingExercise, setIsEditingExercise] = useState(false);
   
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -135,6 +156,119 @@ const SupplementalWorkoutAdminPage: React.FC = () => {
     
     setIsEditMode(false);
   };
+  
+  // Exercise Management Functions
+  const handleExerciseInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setExerciseFormData({ ...exerciseFormData, [name]: value });
+  };
+  
+  const handleAddExercise = (workout: SupplementalWorkout) => {
+    setSelectedWorkout(workout);
+    setExerciseFormData({
+      id: '',
+      name: '',
+      description: '',
+      supplementalWorkoutId: workout.id,
+    });
+    setIsAddingExercise(true);
+    setIsEditingExercise(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  const handleEditExercise = (exercise: Exercise) => {
+    setExerciseFormData({
+      id: exercise.id,
+      name: exercise.name,
+      description: exercise.description || '',
+      supplementalWorkoutId: exercise.supplementalWorkoutId,
+    });
+    setIsEditingExercise(true);
+    setIsAddingExercise(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  
+  const handleCancelExercise = () => {
+    setIsAddingExercise(false);
+    setIsEditingExercise(false);
+    setExerciseFormData({
+      id: '',
+      name: '',
+      description: '',
+      supplementalWorkoutId: '',
+    });
+    setSelectedWorkout(null);
+  };
+  
+  const handleSubmitExercise = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      setIsSubmitting(true);
+      setError('');
+      setSuccessMessage('');
+      
+      if (isEditingExercise) {
+        await supplementalWorkoutService.updateExercise(
+          exerciseFormData.id,
+          {
+            name: exerciseFormData.name,
+            description: exerciseFormData.description,
+          }
+        );
+        setSuccessMessage('Exercise updated successfully!');
+      } else {
+        await supplementalWorkoutService.addExercise(
+          exerciseFormData.supplementalWorkoutId,
+          {
+            name: exerciseFormData.name,
+            description: exerciseFormData.description,
+          }
+        );
+        setSuccessMessage('Exercise added successfully!');
+      }
+      
+      // Reset form
+      setExerciseFormData({
+        id: '',
+        name: '',
+        description: '',
+        supplementalWorkoutId: '',
+      });
+      
+      setIsAddingExercise(false);
+      setIsEditingExercise(false);
+      setSelectedWorkout(null);
+      
+      // Refresh the workout list
+      fetchSupplementalWorkouts();
+    } catch (err: any) {
+      console.error('Submit exercise error:', err);
+      setError(err.response?.data?.error || 'Failed to save exercise');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleDeleteExercise = async (exerciseId: string) => {
+    if (!window.confirm('Are you sure you want to delete this exercise?')) {
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      
+      await supplementalWorkoutService.deleteExercise(exerciseId);
+      
+      setSuccessMessage('Exercise deleted successfully!');
+      fetchSupplementalWorkouts();
+    } catch (err: any) {
+      console.error('Delete exercise error:', err);
+      setError(err.response?.data?.error || 'Failed to delete exercise');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter workouts based on selected filter
   const filteredWorkouts = supplementalWorkouts.filter(workout => {
@@ -174,6 +308,66 @@ const SupplementalWorkoutAdminPage: React.FC = () => {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
+          {isAddingExercise ? (
+            <div className="card mb-6">
+              <h2 className="text-2xl font-semibold mb-4">
+                {isEditingExercise ? 'Edit Exercise' : 'Add Exercise'}
+                {selectedWorkout && <span className="text-base font-normal ml-2">for {selectedWorkout.name}</span>}
+              </h2>
+              
+              <form onSubmit={handleSubmitExercise}>
+                <div className="mb-4">
+                  <label htmlFor="exerciseName" className="form-label">Exercise Name</label>
+                  <input
+                    type="text"
+                    id="exerciseName"
+                    name="name"
+                    className="form-input"
+                    value={exerciseFormData.name}
+                    onChange={handleExerciseInputChange}
+                    required
+                  />
+                </div>
+                
+                <div className="mb-6">
+                  <label htmlFor="exerciseDescription" className="form-label">Description</label>
+                  <textarea
+                    id="exerciseDescription"
+                    name="description"
+                    className="form-input"
+                    value={exerciseFormData.description}
+                    onChange={handleExerciseInputChange}
+                    rows={3}
+                  />
+                </div>
+                
+                <div className="flex space-x-2">
+                  <button
+                    type="submit"
+                    className="btn-primary w-full"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting 
+                      ? 'Saving...' 
+                      : isEditingExercise 
+                        ? 'Update Exercise' 
+                        : 'Add Exercise'
+                    }
+                  </button>
+                  
+                  <button
+                    type="button"
+                    className="btn-secondary w-full"
+                    onClick={handleCancelExercise}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : null}
+          
           <div className="card">
             <h2 className="text-2xl font-semibold mb-4">
               {isEditMode ? 'Edit Supplemental Workout' : 'Create Supplemental Workout'}
@@ -304,50 +498,89 @@ const SupplementalWorkoutAdminPage: React.FC = () => {
               <div className="space-y-6">
                 {Object.entries(workoutsByBodyPart).map(([bodyPart, workouts]) => (
                   <div key={bodyPart}>
-                    <h3 className="text-lg font-medium mb-2">{bodyPart}</h3>
-                    <div className="bg-white rounded-lg shadow overflow-hidden">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {workouts.map((workout) => (
-                            <tr key={workout.id}>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="font-medium">{workout.name}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                  workout.category === 'UPPER'
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-green-100 text-green-800'
-                                }`}>
-                                  {workout.category}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4">
-                                <div className="text-sm text-gray-900 truncate max-w-xs">
-                                  {workout.description || 'No description'}
-                                </div>
+                  <h3 className="text-lg font-medium mb-2">{bodyPart}</h3>
+                  <div className="bg-white rounded-lg shadow overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                  <thead className="bg-gray-50">
+                  <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Name</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/12">Category</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Description</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">Exercises</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/6">Actions</th>
+                  </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                  {workouts.map((workout) => (
+                  <tr key={workout.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="font-medium">{workout.name}</div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                  <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                  workout.category === 'UPPER'
+                  ? 'bg-blue-100 text-blue-800'
+                      : 'bg-green-100 text-green-800'
+                  }`}>
+                    {workout.category}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900 truncate max-w-xs">
+                    {workout.description || 'No description'}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                  <div className="text-sm flex items-center">
+                    <span className="font-semibold mr-2">{workout.exercises.length}</span> exercises
+                    <button
+                      className="ml-auto px-2 py-1 bg-green-50 text-green-600 hover:bg-green-100 text-xs rounded border border-green-200 flex items-center"
+                      onClick={() => handleAddExercise(workout)}
+                    >
+                      <span className="mr-1">+</span> Add
+                    </button>
+                  </div>
+                  {workout.exercises.length > 0 && (
+                    <div className="mt-2 pl-2 border-l-2 border-gray-200 max-h-40 overflow-y-auto">
+                        {workout.exercises.map(exercise => (
+                            <div key={exercise.id} className="text-xs py-1 flex justify-between items-center">
+                                <div className="truncate max-w-[120px]">
+                                    {exercise.name}
+                                    </div>
+                                    <div className="flex space-x-1">
+                                    <button 
+                                    className="text-indigo-600 hover:text-indigo-900 text-xs px-2 py-1"
+                                    onClick={() => handleEditExercise(exercise)}
+                                    >
+                                    Edit
+                                    </button>
+                                    <button 
+                                    className="text-red-600 hover:text-red-900 text-xs px-2 py-1"
+                                    onClick={() => handleDeleteExercise(exercise.id)}
+                                    >
+                                    Delete
+                                    </button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm">
-                                <button
-                                  className="text-indigo-600 hover:text-indigo-900 mr-2"
+                              <div className="flex space-x-2">
+                              <button
+                                className="text-indigo-600 hover:text-indigo-900 px-3 py-1 text-sm border border-indigo-200 rounded-md"
                                   onClick={() => handleEdit(workout)}
-                                >
+                              >
                                   Edit
                                 </button>
-                                <button
-                                  className="text-red-600 hover:text-red-900"
+                              <button
+                                className="text-red-600 hover:text-red-900 px-3 py-1 text-sm border border-red-200 rounded-md"
                                   onClick={() => handleDelete(workout.id)}
-                                >
+                              >
                                   Delete
-                                </button>
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}

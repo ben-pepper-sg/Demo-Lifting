@@ -22,6 +22,8 @@ type AuthContextType = {
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   updateMaxLifts: (lifts: MaxLifts) => Promise<void>;
+  requestPasswordReset: (email: string) => Promise<{resetToken?: string, resetUrl?: string}>;
+  resetPassword: (token: string, password: string) => Promise<void>;
 };
 
 type RegisterData = {
@@ -141,6 +143,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/forgot-password`, { email });
+      
+      return {
+        resetToken: response.data.resetToken,
+        resetUrl: response.data.resetUrl
+      };
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to request password reset');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetPassword = async (token: string, password: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/reset-password`, { token, password });
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to reset password');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value = {
     user,
     token,
@@ -150,6 +185,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     updateMaxLifts,
+    requestPasswordReset,
+    resetPassword,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

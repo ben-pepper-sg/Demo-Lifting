@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 
 // Get all users (admin only) with optional search
 export const getAllUsers = async (req: Request, res: Response) => {

@@ -8,8 +8,8 @@ import { PrismaClient } from '@prisma/client';
 // Load environment variables
 dotenv.config();
 
-// Initialize database
-export const prisma = new PrismaClient();
+// Import database from centralized location
+import { prisma } from './lib/prisma';
 
 // Import routes
 import authRoutes from './routes/auth.routes';

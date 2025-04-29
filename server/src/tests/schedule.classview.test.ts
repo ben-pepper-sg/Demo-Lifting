@@ -14,7 +14,7 @@ const mockPrisma = {
   },
 };
 
-jest.mock('../index', () => ({
+jest.mock('../lib/prisma', () => ({
   prisma: mockPrisma,
 }));
 

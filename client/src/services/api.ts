@@ -84,6 +84,10 @@ export const supplementalWorkoutService = {
   createSupplementalWorkout: (data: any) => api.post('/supplemental-workouts', data),
   updateSupplementalWorkout: (id: string, data: any) => api.put(`/supplemental-workouts/${id}`, data),
   deleteSupplementalWorkout: (id: string) => api.delete(`/supplemental-workouts/${id}`),
+  // Exercise management
+  addExercise: (workoutId: string, data: any) => api.post(`/supplemental-workouts/${workoutId}/exercises`, data),
+  updateExercise: (exerciseId: string, data: any) => api.put(`/supplemental-workouts/exercises/${exerciseId}`, data),
+  deleteExercise: (exerciseId: string) => api.delete(`/supplemental-workouts/exercises/${exerciseId}`),
 };
 
 export default {

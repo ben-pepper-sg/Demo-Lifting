@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt, { SignOptions } from 'jsonwebtoken';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
+import crypto from 'crypto';
 
 export const register = async (req: Request, res: Response) => {
   try {
@@ -165,5 +166,97 @@ export const getMe = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get user error:', error);
     return res.status(500).json({ error: 'Failed to get user data' });
+  }
+};
+
+// Request a password reset
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return res.status(200).json({ message: 'If a user with that email exists, a password reset link has been sent.' });
+    }
+
+    // Generate a reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+    // Update user with reset token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetToken,
+        resetTokenExpiry,
+      },
+    });
+
+    // In a real application, we would send an email here with the reset link
+    // For this demo, we'll just return the token (in production, you would NOT return this)
+    const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    
+    // Import the email service here to avoid circular dependencies
+    const { sendPasswordResetEmail } = await import('../services/email');
+    await sendPasswordResetEmail(user.email, resetToken, resetUrl);
+    
+    console.log(`Reset token for ${user.email}: ${resetToken}`); // For development purposes
+
+    return res.status(200).json({ 
+      message: 'If a user with that email exists, a password reset link has been sent.',
+      // Only return the token and resetUrl in development environment
+      ...(process.env.NODE_ENV !== 'production' ? {
+        resetToken,
+        resetUrl: `${process.env.CLIENT_URL}/reset-password/${resetToken}`
+      } : {})
+    });
+  } catch (error) {
+    console.error('Password reset request error:', error);
+    return res.status(500).json({ error: 'Failed to process password reset request' });
+  }
+};
+
+// Reset the password using token
+export const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const { token, password } = req.body;
+
+    // Find user with this token and token not expired
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: {
+          gt: new Date() // Token not expired
+        }
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    // Hash the new password
+    const saltRounds = 10;
+    const passwordHash = await bcrypt.hash(password, saltRounds);
+
+    // Update user with new password and clear reset token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
+
+    return res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (error) {
+    console.error('Password reset error:', error);
+    return res.status(500).json({ error: 'Failed to reset password' });
   }
 };

@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 // Mock the required modules
 jest.mock('jsonwebtoken');
 jest.mock('bcrypt');
-jest.mock('../index', () => ({
+jest.mock('../lib/prisma', () => ({
   prisma: mockPrisma,
 }));
 

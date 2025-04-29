@@ -19,7 +19,7 @@ jest.mock('@prisma/client', () => ({
   BodyPart: { BICEPS: 'BICEPS', TRICEPS: 'TRICEPS', BACK: 'BACK', SHOULDERS: 'SHOULDERS', CHEST: 'CHEST', CALVES: 'CALVES', QUADS: 'QUADS', HAMSTRINGS: 'HAMSTRINGS', GLUTES: 'GLUTES' }
 }));
 
-jest.mock('../index', () => ({
+jest.mock('../lib/prisma', () => ({
   prisma: mockPrisma,
 }));
 

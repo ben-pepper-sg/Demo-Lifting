@@ -7,7 +7,7 @@ describe('Workout API Routes', () => {
   let app: express.Application;
 
   beforeAll(() => {
-    app = createTestApp(workoutRoutes);
+    app = createTestApp(workoutRoutes, 'workouts');
   });
 
   beforeEach(() => {

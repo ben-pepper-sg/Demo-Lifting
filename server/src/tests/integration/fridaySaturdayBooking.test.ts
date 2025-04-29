@@ -1,7 +1,7 @@
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import { app } from '../../app';
-import { prisma } from '../../index';
+import { prisma } from '../../lib/prisma';
 
 describe('Friday/Saturday Booking Feature', () => {
   let token: string;

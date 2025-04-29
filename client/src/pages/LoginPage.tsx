@@ -49,7 +49,7 @@ const LoginPage: React.FC = () => {
           />
         </div>
         
-        <div className="mb-6">
+        <div className="mb-2">
           <label htmlFor="password" className="form-label">Password</label>
           <input
             type="password"
@@ -59,6 +59,12 @@ const LoginPage: React.FC = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+        </div>
+        
+        <div className="mb-6 text-right">
+          <Link to="/forgot-password" className="text-sm text-primary-600 hover:underline">
+            Forgot your password?
+          </Link>
         </div>
         
         <div className="flex flex-col sm:flex-row items-center justify-between">

@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import { prisma } from '../lib/prisma';
 import { WorkoutCategory, BodyPart } from '@prisma/client';
 
 // Get all supplemental workouts
 export const getAllSupplementalWorkouts = async (req: Request, res: Response) => {
   try {
     const supplementalWorkouts = await prisma.supplementalWorkout.findMany({
+      include: {
+        exercises: true
+      },
       orderBy: [
         { category: 'asc' },
         { bodyPart: 'asc' },
@@ -130,5 +133,111 @@ export const deleteSupplementalWorkout = async (req: Request, res: Response) => 
   } catch (error) {
     console.error('Delete supplemental workout error:', error);
     return res.status(500).json({ error: 'Failed to delete supplemental workout' });
+  }
+};
+
+// Add exercise to a supplemental workout
+export const addExercise = async (req: Request, res: Response) => {
+  try {
+    const { workoutId } = req.params;
+    const { name, description } = req.body;
+    
+    // Validate required fields
+    if (!name) {
+      return res.status(400).json({ error: 'Exercise name is required' });
+    }
+    
+    // Check if supplemental workout exists
+    const existingWorkout = await prisma.supplementalWorkout.findUnique({
+      where: { id: workoutId },
+    });
+    
+    if (!existingWorkout) {
+      return res.status(404).json({ error: 'Supplemental workout not found' });
+    }
+    
+    // Create the exercise
+    const exercise = await prisma.exercise.create({
+      data: {
+        name,
+        description,
+        supplementalWorkoutId: workoutId,
+      },
+    });
+    
+    return res.status(201).json({
+      message: 'Exercise added successfully',
+      exercise,
+    });
+  } catch (error) {
+    console.error('Add exercise error:', error);
+    return res.status(500).json({ error: 'Failed to add exercise' });
+  }
+};
+
+// Update an exercise
+export const updateExercise = async (req: Request, res: Response) => {
+  try {
+    const { exerciseId } = req.params;
+    const { name, description } = req.body;
+    
+    // Validate required fields
+    if (!name) {
+      return res.status(400).json({ error: 'Exercise name is required' });
+    }
+    
+    // Check if exercise exists
+    const existingExercise = await prisma.exercise.findUnique({
+      where: { id: exerciseId },
+    });
+    
+    if (!existingExercise) {
+      return res.status(404).json({ error: 'Exercise not found' });
+    }
+    
+    // Update the exercise
+    const exercise = await prisma.exercise.update({
+      where: { id: exerciseId },
+      data: {
+        name,
+        description,
+      },
+    });
+    
+    return res.status(200).json({
+      message: 'Exercise updated successfully',
+      exercise,
+    });
+  } catch (error) {
+    console.error('Update exercise error:', error);
+    return res.status(500).json({ error: 'Failed to update exercise' });
+  }
+};
+
+// Delete an exercise
+export const deleteExercise = async (req: Request, res: Response) => {
+  try {
+    const { exerciseId } = req.params;
+    
+    // Check if exercise exists
+    const existingExercise = await prisma.exercise.findUnique({
+      where: { id: exerciseId },
+    });
+    
+    if (!existingExercise) {
+      return res.status(404).json({ error: 'Exercise not found' });
+    }
+    
+    // Delete the exercise
+    await prisma.exercise.delete({
+      where: { id: exerciseId },
+    });
+    
+    return res.status(200).json({
+      message: 'Exercise deleted successfully',
+    });
+  } catch (error) {
+    console.error('Delete exercise error:', error);
+    return res.status(500).json({ error: 'Failed to delete exercise' });
   }
 };

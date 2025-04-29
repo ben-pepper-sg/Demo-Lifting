@@ -8,7 +8,7 @@ describe('Auth API Routes', () => {
   let app: express.Application;
 
   beforeAll(() => {
-    app = createTestApp(authRoutes);
+    app = createTestApp(authRoutes, 'auth');
   });
 
   beforeEach(() => {
