@@ -20,11 +20,22 @@ export function debounce<T extends (...args: any[]) => any>(func: T, wait: numbe
 }
 
 /**
- * Formats a number as a weight value
+ * Rounds a number to the nearest 5
+ * @param value Number to round
+ * @returns Rounded number
+ */
+export function roundToNearest5(value: number | null | undefined): number | null | undefined {
+  if (value === null || value === undefined) return value;
+  return Math.round(value / 5) * 5;
+}
+
+/**
+ * Formats a number as a weight value, rounding to the nearest 5 pounds
  * @param value Number to format
  * @returns Formatted weight string
  */
 export function formatWeight(value: number | null | undefined): string {
   if (value === null || value === undefined) return '-';
-  return `${value} lbs`;
+  const roundedValue = roundToNearest5(value);
+  return `${roundedValue} lbs`;
 }

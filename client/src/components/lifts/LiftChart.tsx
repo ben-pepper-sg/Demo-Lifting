@@ -1,6 +1,7 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import { roundToNearest5 } from '../../utils/helpers';
 // Error monitoring removed
 
 // Register Chart.js components
@@ -51,7 +52,11 @@ export const LiftChart: React.FC<LiftChartProps> = ({ workouts, liftType, timefr
     return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
   });
 
-  const weights = workouts.map(workout => workout.weight);
+  const weights = workouts.map(workout => {
+    const rounded = roundToNearest5(workout.weight);
+    // Ensure we always return a number for Math.max
+    return rounded !== null && rounded !== undefined ? rounded : 0;
+  });
 
   // Calculate max weight for y-axis padding
   const maxWeight = Math.max(...weights) * 1.1;
@@ -83,7 +88,7 @@ export const LiftChart: React.FC<LiftChartProps> = ({ workouts, liftType, timefr
       tooltip: {
         callbacks: {
           label: function(context: any) {
-            return `Weight: ${context.parsed.y} lbs`;
+            return `Weight: ${context.parsed.y} lbs`;  // Already rounded by our data processing
           }
         }
       }

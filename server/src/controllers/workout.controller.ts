@@ -201,11 +201,14 @@ export const calculateLiftWeight = async (req: Request, res: Response) => {
     
     const weight = maxWeight * (Number(percentage) / 100);
     
+    // Round to nearest 5 pounds
+    const roundedWeight = Math.round(weight / 5) * 5;
+    
     return res.status(200).json({
       liftType,
       maxWeight,
       percentage: Number(percentage),
-      calculatedWeight: Math.round(weight * 2) / 2, // Round to nearest 0.5
+      calculatedWeight: roundedWeight,
     });
   } catch (error: any) {
     console.error('Calculate lift weight error:', error);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { scheduleService } from '../services/api';
+import { formatWeight } from '../utils/helpers';
 
 type ClassParticipant = {
   userId: string;
@@ -196,19 +197,19 @@ const ClassViewPage: React.FC = () => {
                         {classDetails.workoutType === 'UPPER' ? (
                           <>
                             <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.bench ? `${participant.weights.bench} lbs` : '-'}
+                              {participant.weights.bench ? formatWeight(participant.weights.bench) : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.ohp ? `${participant.weights.ohp} lbs` : '-'}
+                              {participant.weights.ohp ? formatWeight(participant.weights.ohp) : '-'}
                             </td>
                           </>
                         ) : (
                           <>
                             <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.squat ? `${participant.weights.squat} lbs` : '-'}
+                              {participant.weights.squat ? formatWeight(participant.weights.squat) : '-'}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.deadlift ? `${participant.weights.deadlift} lbs` : '-'}
+                              {participant.weights.deadlift ? formatWeight(participant.weights.deadlift) : '-'}
                             </td>
                           </>
                         )}

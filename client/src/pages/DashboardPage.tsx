@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { workoutService } from '../services/api';
+import { roundToNearest5 } from '../utils/helpers';
 
 type MaxLiftsFormData = {
   maxBench: string;
@@ -36,9 +37,9 @@ const DashboardPage: React.FC = () => {
 
   useEffect(() => {
     fetchWorkoutScheme();
-  }, [weekNumber]);
+  }, [weekNumber, fetchWorkoutScheme]);
 
-  const fetchWorkoutScheme = async () => {
+  const fetchWorkoutScheme = React.useCallback(async () => {
     try {
       // Get the current day of the week (1-7, Sunday is 0)
       const today = new Date().getDay() || 7; // Convert Sunday from 0 to 7
@@ -58,7 +59,7 @@ const DashboardPage: React.FC = () => {
     } catch (err) {
       console.error('Failed to fetch workout scheme:', err);
     }
-  };
+  }, [weekNumber, user]);  // Add dependencies
 
   const calculateWeights = async (scheme: any) => {
     if (!scheme) return;
@@ -180,8 +181,8 @@ const DashboardPage: React.FC = () => {
                           <ul className="list-disc list-inside">
                             {workoutScheme.percentages.map((percentage: number, index: number) => (
                               <li key={index}>
-                                Set {index + 1}: {Math.round((calculatedWeights.bench * percentage / workoutScheme.percentages[0]) * 2) / 2} lbs
-                                ({workoutScheme.reps[index]} reps)
+                              Set {index + 1}: {roundToNearest5(calculatedWeights.bench * percentage / workoutScheme.percentages[0])} lbs
+                              ({workoutScheme.reps[index]} reps)
                               </li>
                             ))}
                           </ul>
@@ -191,8 +192,8 @@ const DashboardPage: React.FC = () => {
                           <ul className="list-disc list-inside">
                             {workoutScheme.percentages.map((percentage: number, index: number) => (
                               <li key={index}>
-                                Set {index + 1}: {Math.round((calculatedWeights.ohp * percentage / workoutScheme.percentages[0]) * 2) / 2} lbs
-                                ({workoutScheme.reps[index]} reps)
+                              Set {index + 1}: {roundToNearest5(calculatedWeights.ohp * percentage / workoutScheme.percentages[0])} lbs
+                              ({workoutScheme.reps[index]} reps)
                               </li>
                             ))}
                           </ul>
@@ -205,8 +206,8 @@ const DashboardPage: React.FC = () => {
                           <ul className="list-disc list-inside">
                             {workoutScheme.percentages.map((percentage: number, index: number) => (
                               <li key={index}>
-                                Set {index + 1}: {Math.round((calculatedWeights.squat * percentage / workoutScheme.percentages[0]) * 2) / 2} lbs
-                                ({workoutScheme.reps[index]} reps)
+                              Set {index + 1}: {roundToNearest5(calculatedWeights.squat * percentage / workoutScheme.percentages[0])} lbs
+                              ({workoutScheme.reps[index]} reps)
                               </li>
                             ))}
                           </ul>
@@ -216,8 +217,8 @@ const DashboardPage: React.FC = () => {
                           <ul className="list-disc list-inside">
                             {workoutScheme.percentages.map((percentage: number, index: number) => (
                               <li key={index}>
-                                Set {index + 1}: {Math.round((calculatedWeights.deadlift * percentage / workoutScheme.percentages[0]) * 2) / 2} lbs
-                                ({workoutScheme.reps[index]} reps)
+                              Set {index + 1}: {roundToNearest5(calculatedWeights.deadlift * percentage / workoutScheme.percentages[0])} lbs
+                              ({workoutScheme.reps[index]} reps)
                               </li>
                             ))}
                           </ul>
