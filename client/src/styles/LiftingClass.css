@@ -21,6 +21,20 @@
   display: flex;
   justify-content: space-between;
   gap: 10px;
+  margin-bottom: 4px;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.lifting-class-scheme-label {
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.lifting-class-scheme-value {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 8px;
   font-weight: bold;
   font-size: 1.1em;

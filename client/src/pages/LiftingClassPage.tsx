@@ -86,8 +86,12 @@ const LiftingClassPage: React.FC = () => {
       {/* Top bar with rep scheme, rest period, and cell phone rule */}
       <div className="lifting-class-header">
         <div className="lifting-class-scheme">
-          <span>{repScheme}</span>
+          <div className="lifting-class-scheme-label">Rep Scheme for the Week</div>
           <span>{restPeriod}</span>
+        </div>
+        <div className="lifting-class-scheme-value">
+          <span>{repScheme}</span>
+          <span></span> {/* Empty span to maintain the grid layout */}
         </div>
         <div className="lifting-class-cell-phone">
           10 Burpees per use of cell phone
