@@ -76,8 +76,8 @@ const LiftingClassPage: React.FC = () => {
     );
   }
 
-  // Format rep scheme
-  const repScheme = classDetails.scheme.reps.join('-') + ' @ ' + classDetails.scheme.percentages.join('-') + '%';
+  // Format rep scheme - showing only reps, no percentages
+  const repScheme = classDetails.scheme.reps.join('-');
   // Format rest period
   const restPeriod = Math.floor(classDetails.scheme.restTime / 60) + ' minutes';
 
