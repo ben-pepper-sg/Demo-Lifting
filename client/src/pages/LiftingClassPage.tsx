@@ -12,8 +12,50 @@ const LiftingClassPage: React.FC = () => {
 
   useEffect(() => {
     fetchClassDetails();
-    const interval = setInterval(fetchClassDetails, 300000); // Refresh every 5 minutes
-    return () => clearInterval(interval);
+    
+    // Function to calculate time until next refresh (either 5 mins before hour or top of hour)
+    const getTimeUntilNextRefresh = () => {
+      const now = new Date();
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+      const milliseconds = now.getMilliseconds();
+      
+      let timeToNextRefresh: number;
+      
+      // Calculate time until 5 minutes before the next hour
+      if (minutes < 55) {
+        // Time until XX:55:00
+        timeToNextRefresh = ((55 - minutes) * 60 - seconds) * 1000 - milliseconds;
+      } else {
+        // Time until next hour XX:00:00
+        timeToNextRefresh = ((60 - minutes) * 60 - seconds) * 1000 - milliseconds;
+      }
+      
+      return timeToNextRefresh;
+    };
+    
+    // Function to schedule the next refresh
+    const scheduleNextRefresh = () => {
+      const timeUntilRefresh = getTimeUntilNextRefresh();
+      
+      // Set timeout for next refresh
+      const refreshTimeout = setTimeout(() => {
+        fetchClassDetails();
+        // Schedule the next refresh after this one completes
+        scheduleNextRefresh();
+      }, timeUntilRefresh);
+      
+      // Store the timeout ID for cleanup
+      return refreshTimeout;
+    };
+    
+    // Initial scheduling
+    const refreshTimeout = scheduleNextRefresh();
+    
+    // Cleanup function
+    return () => {
+      clearTimeout(refreshTimeout);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -25,7 +67,6 @@ const LiftingClassPage: React.FC = () => {
       // Get hour parameter from URL if present
       const hourParam = searchParams.get('hour');
       const endpoint = hourParam ? `/schedule/class?hour=${hourParam}` : '/schedule/class';
-      console.log('Fetching class from endpoint:', endpoint);
       
       const response = await scheduleService.getClassDetails(endpoint);
       setClassDetails(response.data.class);
