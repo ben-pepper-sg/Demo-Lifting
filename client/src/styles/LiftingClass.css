@@ -21,15 +21,16 @@
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
   font-weight: bold;
+  font-size: 1.1em;
 }
 
 .lifting-class-cell-phone {
   color: #ff0000;
   font-weight: bold;
   text-align: center;
-  font-size: 1em;
+  font-size: 1.2em;
 }
 
 .lifting-class-main {
@@ -49,8 +50,8 @@
   color: #ff0000;
   font-weight: bold;
   text-align: center;
-  font-size: 1em;
-  padding: 10px 0;
+  font-size: 1.2em;
+  padding: 15px 0;
   border-top: 1px solid #ff0000;
   border-bottom: 1px solid #ff0000;
 }
@@ -59,29 +60,32 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
 }
 
 .lifting-class-column-header {
   font-weight: bold;
-  font-size: 0.9em;
+  font-size: 1.2em;
   text-align: center;
+  margin-bottom: 10px;
 }
 
 .lifting-class-participant-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 10px;
-  padding: 5px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #e0e0e0;
   align-items: center;
+  font-size: 1.1em;
 }
 
 .lifting-class-weight-row {
   display: flex;
   justify-content: center;
-  gap: 5px;
-  font-size: 0.9em;
+  gap: 8px;
+  font-size: 1.1em;
+  font-weight: 500;
 }
 
 .lifting-class-supplemental {
@@ -99,29 +103,31 @@
 }
 
 .lifting-class-supplemental-workout {
-  margin-bottom: 10px;
-  font-size: 0.9em;
+  margin-bottom: 12px;
+  font-size: 1.1em;
 }
 
 .lifting-class-supplemental-item {
-  margin-bottom: 10px;
-  padding-bottom: 5px;
-  font-size: 0.9em;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  font-size: 1.1em;
 }
 
 .lifting-class-upper-supplemental,
 .lifting-class-lower-supplemental {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .supplemental-workout-name {
   font-weight: bold;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  font-size: 1.2em;
 }
 
 .supplemental-exercise {
-  margin-left: 10px;
-  margin-bottom: 5px;
+  margin-left: 12px;
+  margin-bottom: 8px;
+  font-size: 1.1em;
 }
 
 .supplemental-exercise-name {
@@ -129,7 +135,8 @@
 }
 
 .supplemental-exercise-description {
-  font-size: 0.85em;
+  font-size: 1em;
   color: #666;
-  margin-left: 12px;
+  margin-left: 15px;
+  margin-top: 3px;
 }
