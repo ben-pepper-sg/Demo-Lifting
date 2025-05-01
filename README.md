@@ -86,6 +86,10 @@ npm run test:unit
 - Weight calculation based on user's max lifts
 - Mobile-friendly responsive design
 - Class view to display current participants and weights
+- Automatic page refresh at 5 minutes before the hour and on the hour
+- Supplemental workout rotation system that changes weekly
+- Timezone-aware class scheduling and display
+- Comprehensive test coverage including auto-refresh testing
 
 ## Tech Stack
 
@@ -198,8 +202,11 @@ npm run test:unit
 - Track progress over time
 
 ### Class View
-- The `/class` page displays participants for the upcoming class
+- The `/lifting-class` page displays participants for the upcoming class
 - Shows each user's name and calculated weights for the current workout
+- Automatically refreshes at 5 minutes before the hour (XX:55) and at the top of each hour (XX:00)
+- Use `?hour=XX` parameter to view a specific hour's class (e.g., `/lifting-class?hour=16` for 4 PM)
+- Displays supplemental workouts that rotate weekly every Monday
 
 ## API Endpoints
 
@@ -226,7 +233,8 @@ npm run test:unit
 - `POST /api/schedule` - Create a new schedule (admin/coach only)
 - `POST /api/schedule/:scheduleId/book` - Book a time slot
 - `DELETE /api/schedule/:scheduleId/book` - Cancel a booking
-- `GET /api/schedule/class` - Get class details for the next hour
+- `GET /api/schedule/class` - Get class details for the current or next hour
+- `GET /api/schedule/class?hour=XX` - Get class details for a specific hour
 
 ## Development and Testing
 
