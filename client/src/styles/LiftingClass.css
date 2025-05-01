@@ -31,6 +31,12 @@
   font-size: 1.1em;
 }
 
+.lifting-class-rest-label {
+  font-weight: bold;
+  font-size: 1.1em;
+  text-align: right;
+}
+
 .lifting-class-scheme-value {
   display: flex;
   justify-content: space-between;

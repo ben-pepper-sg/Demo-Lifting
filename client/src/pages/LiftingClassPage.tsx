@@ -87,11 +87,11 @@ const LiftingClassPage: React.FC = () => {
       <div className="lifting-class-header">
         <div className="lifting-class-scheme">
           <div className="lifting-class-scheme-label">Rep Scheme for the Week</div>
-          <span>{restPeriod}</span>
+          <div className="lifting-class-rest-label">Rest Period:</div>
         </div>
         <div className="lifting-class-scheme-value">
           <span>{repScheme}</span>
-          <span></span> {/* Empty span to maintain the grid layout */}
+          <span>{restPeriod}</span>
         </div>
         <div className="lifting-class-cell-phone">
           10 Burpees per use of cell phone
