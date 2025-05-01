@@ -1,0 +1,135 @@
+/* Styles for the Lifting Class page */
+.lifting-class-container {
+  max-width: 2880px;
+  margin: 20px auto;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  border: 3px solid #000;
+  border-radius: 5px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.lifting-class-header {
+  padding: 10px;
+  border-bottom: 1px solid #ff0000;
+  text-align: center;
+}
+
+.lifting-class-scheme {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.lifting-class-cell-phone {
+  color: #ff0000;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1em;
+}
+
+.lifting-class-main {
+  flex-grow: 1;
+  padding: 10px;
+  border-bottom: 1px solid #ff0000;
+  display: flex;
+  flex-direction: column;
+}
+
+.lifting-class-participant-area {
+  flex-grow: 1;
+  min-height: 200px;
+}
+
+.lifting-class-weighted-reps {
+  color: #ff0000;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1em;
+  padding: 10px 0;
+  border-top: 1px solid #ff0000;
+  border-bottom: 1px solid #ff0000;
+}
+
+.lifting-class-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.lifting-class-column-header {
+  font-weight: bold;
+  font-size: 0.9em;
+  text-align: center;
+}
+
+.lifting-class-participant-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid #e0e0e0;
+  align-items: center;
+}
+
+.lifting-class-weight-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.9em;
+}
+
+.lifting-class-supplemental {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.lifting-class-supplemental-left {
+  padding: 15px;
+  border-right: 1px solid #000;
+}
+
+.lifting-class-supplemental-right {
+  padding: 15px;
+}
+
+.lifting-class-supplemental-workout {
+  margin-bottom: 10px;
+  font-size: 0.9em;
+}
+
+.lifting-class-supplemental-item {
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.lifting-class-upper-supplemental,
+.lifting-class-lower-supplemental {
+  margin-bottom: 15px;
+}
+
+.supplemental-workout-name {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.supplemental-exercise {
+  margin-left: 10px;
+  margin-bottom: 5px;
+}
+
+.supplemental-exercise-name {
+  font-weight: 500;
+}
+
+.supplemental-exercise-description {
+  font-size: 0.85em;
+  color: #666;
+  margin-left: 12px;
+}
