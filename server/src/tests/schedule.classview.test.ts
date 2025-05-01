@@ -140,7 +140,7 @@ describe('Schedule Class View Controller', () => {
     // Verify response
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({
-      error: 'No class scheduled for the next hour',
+      error: 'No class scheduled for the current hour',
     });
   });
 });

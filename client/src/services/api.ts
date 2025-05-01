@@ -65,7 +65,10 @@ export const scheduleService = {
   createSchedule: (scheduleData: any) => api.post('/schedule', scheduleData),
   bookTimeSlot: (scheduleId: string, workoutType?: string) => api.post(`/schedule/${scheduleId}/book`, workoutType ? { workoutType } : {}),
   cancelBooking: (scheduleId: string) => api.delete(`/schedule/${scheduleId}/book`),
-  getClassDetails: () => api.get('/schedule/class'),
+  getClassDetails: (endpoint = '/schedule/class') => {
+    console.log('Fetching class details from:', `${API_URL}/api${endpoint}`);
+    return api.get(endpoint);
+  },
   deleteSchedule: (id: string) => api.delete(`/schedule/${id}`),
 };
 

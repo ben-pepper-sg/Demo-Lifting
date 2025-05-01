@@ -53,11 +53,17 @@ const Navbar: React.FC = () => {
                     </>
                   )}
                   <Link
-                    to="/class"
-                    className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
+                  to="/class"
+                  className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
                   >
-                    Current Class
+                  Current Class
                   </Link>
+                <Link
+                  to="/lifting-class"
+                  className="text-white hover:text-gray-200 px-3 py-2 text-sm font-medium"
+                >
+                  Lifting Class
+                </Link>
                 </div>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:items-center">
@@ -217,12 +223,19 @@ const Navbar: React.FC = () => {
                 </>
               )}
               <Disclosure.Button
-                as={Link}
-                to="/class"
-                className="text-white block px-3 py-2 rounded-md text-base font-medium"
+              as={Link}
+              to="/class"
+              className="text-white block px-3 py-2 rounded-md text-base font-medium"
               >
-                Current Class
+              Current Class
               </Disclosure.Button>
+                <Disclosure.Button
+                  as={Link}
+                  to="/lifting-class"
+                  className="text-white block px-3 py-2 rounded-md text-base font-medium"
+                >
+                  Lifting Class
+                </Disclosure.Button>
             </div>
             <div className="pt-4 pb-3 border-t border-primary-700">
               {user ? (

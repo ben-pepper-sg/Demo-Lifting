@@ -36,6 +36,6 @@ export function roundToNearest5(value: number | null | undefined): number | null
  */
 export function formatWeight(value: number | null | undefined): string {
   if (value === null || value === undefined) return '-';
-  const roundedValue = roundToNearest5(value);
-  return `${roundedValue} lbs`;
+  // No need to round again as we're now rounding on the server side
+  return `${value} lbs`;
 }

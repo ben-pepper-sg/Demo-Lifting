@@ -167,19 +167,19 @@ const ClassViewPage: React.FC = () => {
                       </th>
                       {classDetails.workoutType === 'UPPER' ? (
                         <>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Bench Press
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Overhead Press
                           </th>
                         </>
                       ) : (
                         <>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Back Squat
                           </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Deadlift
                           </th>
                         </>
@@ -196,20 +196,112 @@ const ClassViewPage: React.FC = () => {
                         </td>
                         {classDetails.workoutType === 'UPPER' ? (
                           <>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.bench ? formatWeight(participant.weights.bench) : '-'}
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col space-y-1">
+                                <div className="flex justify-between items-center text-sm font-medium text-gray-700 border-b pb-1 mb-1">
+                                  <span>Sets</span>
+                                  <div className="flex space-x-4">
+                                    {classDetails.scheme.percentages.map((percentage, index) => (
+                                      <span key={index} className="w-14 text-center">{percentage}%</span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-600">Weight</span>
+                                  <div className="flex space-x-4">
+                                    {Array.isArray(participant.weights.bench) ? (
+                                      participant.weights.bench.map((weight, index) => (
+                                        <span key={index} className="w-14 text-center font-medium">{formatWeight(weight)}</span>
+                                      ))
+                                    ) : (
+                                      <span className="w-14 text-center font-medium">
+                                        {participant.weights.bench ? formatWeight(participant.weights.bench) : '-'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.ohp ? formatWeight(participant.weights.ohp) : '-'}
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col space-y-1">
+                                <div className="flex justify-between items-center text-sm font-medium text-gray-700 border-b pb-1 mb-1">
+                                  <span>Sets</span>
+                                  <div className="flex space-x-4">
+                                    {classDetails.scheme.percentages.map((percentage, index) => (
+                                      <span key={index} className="w-14 text-center">{percentage}%</span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-600">Weight</span>
+                                  <div className="flex space-x-4">
+                                    {Array.isArray(participant.weights.ohp) ? (
+                                      participant.weights.ohp.map((weight, index) => (
+                                        <span key={index} className="w-14 text-center font-medium">{formatWeight(weight)}</span>
+                                      ))
+                                    ) : (
+                                      <span className="w-14 text-center font-medium">
+                                        {participant.weights.ohp ? formatWeight(participant.weights.ohp) : '-'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </td>
                           </>
                         ) : (
                           <>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.squat ? formatWeight(participant.weights.squat) : '-'}
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col space-y-1">
+                                <div className="flex justify-between items-center text-sm font-medium text-gray-700 border-b pb-1 mb-1">
+                                  <span>Sets</span>
+                                  <div className="flex space-x-4">
+                                    {classDetails.scheme.percentages.map((percentage, index) => (
+                                      <span key={index} className="w-14 text-center">{percentage}%</span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-600">Weight</span>
+                                  <div className="flex space-x-4">
+                                    {Array.isArray(participant.weights.squat) ? (
+                                      participant.weights.squat.map((weight, index) => (
+                                        <span key={index} className="w-14 text-center font-medium">{formatWeight(weight)}</span>
+                                      ))
+                                    ) : (
+                                      <span className="w-14 text-center font-medium">
+                                        {participant.weights.squat ? formatWeight(participant.weights.squat) : '-'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-900">
-                              {participant.weights.deadlift ? formatWeight(participant.weights.deadlift) : '-'}
+                            <td className="px-6 py-4">
+                              <div className="flex flex-col space-y-1">
+                                <div className="flex justify-between items-center text-sm font-medium text-gray-700 border-b pb-1 mb-1">
+                                  <span>Sets</span>
+                                  <div className="flex space-x-4">
+                                    {classDetails.scheme.percentages.map((percentage, index) => (
+                                      <span key={index} className="w-14 text-center">{percentage}%</span>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="text-sm text-gray-600">Weight</span>
+                                  <div className="flex space-x-4">
+                                    {Array.isArray(participant.weights.deadlift) ? (
+                                      participant.weights.deadlift.map((weight, index) => (
+                                        <span key={index} className="w-14 text-center font-medium">{formatWeight(weight)}</span>
+                                      ))
+                                    ) : (
+                                      <span className="w-14 text-center font-medium">
+                                        {participant.weights.deadlift ? formatWeight(participant.weights.deadlift) : '-'}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
                             </td>
                           </>
                         )}
@@ -227,11 +319,25 @@ const ClassViewPage: React.FC = () => {
         </div>
       ) : (
         <div className="text-center py-8 bg-gray-50 rounded-lg">
-          <h2 className="text-xl font-semibold mb-2">No Class Currently in Session</h2>
-          <p className="text-gray-600">
-            There is no class scheduled for the next hour, or the class information is not available.
-          </p>
-        </div>
+        <h2 className="text-xl font-semibold mb-2">No Class Currently in Session</h2>
+        <p className="text-gray-600">
+        There is no class scheduled for the current or upcoming hour, or the class information is not available.
+        </p>
+          <div className="mt-4">
+              <button
+                onClick={() => window.location.href = '/class?hour=9'}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mr-2"
+              >
+                View 9am Class
+              </button>
+              <button
+                onClick={() => window.location.href = '/class?hour=8'}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                View 8am Class
+              </button>
+            </div>
+          </div>
       )}
     </div>
   );

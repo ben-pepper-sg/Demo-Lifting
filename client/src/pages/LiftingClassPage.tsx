@@ -13,7 +13,7 @@ const LiftingClassPage: React.FC = () => {
   useEffect(() => {
     fetchClassDetails();
     
-    // Function to calculate time until next refresh (either 5 mins before hour or top of hour)
+    // Function to calculate time until next refresh points (either 5 mins before hour or top of hour)
     const getTimeUntilNextRefresh = () => {
       const now = new Date();
       const minutes = now.getMinutes();
@@ -21,29 +21,49 @@ const LiftingClassPage: React.FC = () => {
       const milliseconds = now.getMilliseconds();
       
       let timeToNextRefresh: number;
+      let refreshType: string;
       
       // Calculate time until 5 minutes before the next hour
-      if (minutes < 55) {
-        // Time until XX:55:00
-        timeToNextRefresh = ((55 - minutes) * 60 - seconds) * 1000 - milliseconds;
+      if (minutes < 54) {
+        // Time until XX:55:00 (we target 54:30 to ensure we don't miss the 55:00 mark)
+        timeToNextRefresh = ((54 - minutes) * 60 + 30 - seconds) * 1000 - milliseconds;
+        refreshType = 'pre-hour';
+      } else if (minutes < 59) {
+        // Time until next hour XX:00:00 (we target 59:30 to ensure we don't miss the hour mark)
+        timeToNextRefresh = ((59 - minutes) * 60 + 30 - seconds) * 1000 - milliseconds;
+        refreshType = 'hour';
       } else {
-        // Time until next hour XX:00:00
-        timeToNextRefresh = ((60 - minutes) * 60 - seconds) * 1000 - milliseconds;
+        // We're at 59 minutes, so target 54:30 of the next hour (55 minutes away)
+        timeToNextRefresh = ((54 + 60 - minutes) * 60 + 30 - seconds) * 1000 - milliseconds;
+        refreshType = 'next-pre-hour';
       }
       
-      return timeToNextRefresh;
+      return { timeToNextRefresh, refreshType };
     };
+    
+    // Also set up a backup 1-minute interval to ensure we stay in sync
+    const backupInterval = setInterval(() => {
+      const now = new Date();
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+      
+      // If we're between XX:54:30 and XX:55:30 OR between XX:59:30 and XX:00:30, refresh
+      if ((minutes === 54 && seconds >= 30) || (minutes === 55 && seconds <= 30) ||
+          (minutes === 59 && seconds >= 30) || (minutes === 0 && seconds <= 30)) {
+        fetchClassDetails();
+      }
+    }, 60000); // Check every minute
     
     // Function to schedule the next refresh
     const scheduleNextRefresh = () => {
-      const timeUntilRefresh = getTimeUntilNextRefresh();
+      const { timeToNextRefresh, refreshType } = getTimeUntilNextRefresh();
       
       // Set timeout for next refresh
       const refreshTimeout = setTimeout(() => {
         fetchClassDetails();
         // Schedule the next refresh after this one completes
         scheduleNextRefresh();
-      }, timeUntilRefresh);
+      }, timeToNextRefresh);
       
       // Store the timeout ID for cleanup
       return refreshTimeout;
@@ -55,6 +75,7 @@ const LiftingClassPage: React.FC = () => {
     // Cleanup function
     return () => {
       clearTimeout(refreshTimeout);
+      clearInterval(backupInterval);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

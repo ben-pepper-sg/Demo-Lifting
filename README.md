@@ -1,6 +1,7 @@
 # TFW MMA Lifting Program
 
-[![codecov](https://codecov.io/gh/YOUR_USERNAME/tfwmma_lifting/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/YOUR_USERNAME/tfwmma_lifting)
+[![CI](https://github.com/YOUR_USERNAME/tfwmma_lifting/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/tfwmma_lifting/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/YOUR_USERNAME/tfwmma_lifting/branch/main/graph/badge.svg)](https://codecov.io/gh/YOUR_USERNAME/tfwmma_lifting)
 
 ## Overview
 A full-stack web application for managing an 8-week weightlifting program. The application allows users to sign up for lifting sessions, track their progress, and view their workout plans.

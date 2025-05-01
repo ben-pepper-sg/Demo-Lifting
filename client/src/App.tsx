@@ -13,6 +13,7 @@ import SchedulePage from './pages/SchedulePage';
 import DefaultSchedulePage from './pages/DefaultSchedulePage';
 import ProfilePage from './pages/ProfilePage';
 import ClassViewPage from './pages/ClassViewPage';
+import LiftingClassPage from './pages/LiftingClassPage';
 import AdminPage from './pages/AdminPage';
 import DefaultScheduleAdminPage from './pages/DefaultScheduleAdminPage';
 import SupplementalWorkoutAdminPage from './pages/SupplementalWorkoutAdminPage';
@@ -59,8 +60,9 @@ function App() {
             </ProtectedRoute>
           } />
           
-          {/* Class view */}
+          {/* Class views */}
           <Route path="class" element={<ClassViewPage />} />
+          <Route path="lifting-class" element={<LiftingClassPage />} />
           
           {/* Admin routes */}
           <Route path="admin" element={
