@@ -89,6 +89,10 @@ const ProfilePage: React.FC = () => {
       }
     } catch (err) {
       console.error('Failed to calculate weights:', err);
+      const enhancedError = new Error(`Weight calculation failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      enhancedError.name = 'WeightCalculationError';
+      (enhancedError as any).originalError = err;
+      throw enhancedError;
     }
   };
 

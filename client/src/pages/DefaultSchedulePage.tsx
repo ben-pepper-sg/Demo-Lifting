@@ -135,11 +135,21 @@ const DefaultSchedulePage: React.FC = () => {
     } catch (err: any) {
       // If schedule already exists (409 Conflict), try to book it
       if (err.response?.status === 409 && err.response?.data?.scheduleId) {
-        const existingScheduleId = err.response.data.scheduleId;
-        await scheduleService.bookTimeSlot(existingScheduleId, workoutType);
-        setSuccessMessage('Session booked successfully!');
+        try {
+          const existingScheduleId = err.response.data.scheduleId;
+          await scheduleService.bookTimeSlot(existingScheduleId, workoutType);
+          setSuccessMessage('Session booked successfully!');
+        } catch (bookingErr) {
+          const enhancedError = new Error(`Failed to book existing schedule slot: ${bookingErr instanceof Error ? bookingErr.message : 'Unknown error'}`);
+          enhancedError.name = 'ScheduleBookingError';
+          (enhancedError as any).originalError = bookingErr;
+          throw enhancedError;
+        }
       } else {
-        throw err;
+        const enhancedError = new Error(`Schedule creation failed: ${err.message || 'Unknown error'}`);
+        enhancedError.name = 'ScheduleCreationError';
+        (enhancedError as any).originalError = err;
+        throw enhancedError;
       }
     }
   };
