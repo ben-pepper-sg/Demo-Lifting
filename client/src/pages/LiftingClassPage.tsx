@@ -93,7 +93,14 @@ const LiftingClassPage: React.FC = () => {
       setClassDetails(response.data.class);
     } catch (err: any) {
       setClassDetails(null);
-      setError(err.response?.data?.error || 'Failed to fetch class details');
+      const errorMessage = err.response?.data?.error || 'Failed to fetch class details';
+      setError(errorMessage);
+      
+      const enhancedError = new Error(`Class details fetch failed: ${errorMessage}`);
+      enhancedError.name = 'ClassDetailsFetchError';
+      (enhancedError as any).originalError = err;
+      (enhancedError as any).statusCode = err.response?.status;
+      throw enhancedError;
     } finally {
       setIsLoading(false);
     }

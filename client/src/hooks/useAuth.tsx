@@ -76,13 +76,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(response.data.user);
         } catch (err) {
           console.error('Auth check failed:', err);
+          const enhancedError = new Error(`Authentication verification failed: ${err instanceof Error ? err.message : 'Unknown error'}`);
+          enhancedError.name = 'AuthVerificationError';
+          (enhancedError as any).originalError = err;
           logout(); // Clear invalid token
+          throw enhancedError;
         }
       }
       setLoading(false);
     };
 
-    checkAuth();
+    checkAuth().catch(err => {
+      // Handle the async error properly to prevent unhandled promise rejection
+      console.error('Failed to check authentication status:', err);
+    });
   }, [token]);
 
   const login = async (email: string, password: string) => {
