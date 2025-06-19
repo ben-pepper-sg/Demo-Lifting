@@ -18,6 +18,7 @@ import AdminPage from './pages/AdminPage';
 import DefaultScheduleAdminPage from './pages/DefaultScheduleAdminPage';
 import SupplementalWorkoutAdminPage from './pages/SupplementalWorkoutAdminPage';
 import LiftProgressPage from './pages/LiftProgressPage';
+import FEErrorPage from './pages/FEErrorPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
 
@@ -63,6 +64,9 @@ function App() {
           {/* Class views */}
           <Route path="class" element={<ClassViewPage />} />
           <Route path="lifting-class" element={<LiftingClassPage />} />
+          
+          {/* Error testing page */}
+          <Route path="fe-error" element={<FEErrorPage />} />
           
           {/* Admin routes */}
           <Route path="admin" element={
