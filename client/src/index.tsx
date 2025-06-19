@@ -6,6 +6,31 @@ import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
 // Error monitoring removed
 
+// Global error handlers for better error reporting
+window.addEventListener('error', (event) => {
+  console.error('Global error caught:', {
+    message: event.message,
+    filename: event.filename,
+    lineno: event.lineno,
+    colno: event.colno,
+    error: event.error
+  });
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', {
+    reason: event.reason,
+    promise: event.promise
+  });
+  
+  // Prevent generic "Async operation failed" by providing more specific error
+  if (event.reason && typeof event.reason === 'object') {
+    if (event.reason.message === 'Async operation failed' || !event.reason.message) {
+      event.reason.message = event.reason.message || 'Promise rejected without specific error message';
+    }
+  }
+});
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );

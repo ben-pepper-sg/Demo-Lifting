@@ -98,8 +98,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data.user);
       setToken(response.data.token);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Login failed');
-      throw err;
+      const errorMessage = err.response?.data?.error || err.message || 'Login failed due to unknown error';
+      setError(errorMessage);
+      
+      // Create a more descriptive error for debugging
+      const enhancedError = new Error(errorMessage);
+      enhancedError.name = 'LoginError';
+      (enhancedError as any).originalError = err;
+      (enhancedError as any).statusCode = err.response?.status;
+      throw enhancedError;
     } finally {
       setLoading(false);
     }
@@ -115,8 +122,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(response.data.user);
       setToken(response.data.token);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Registration failed');
-      throw err;
+      const errorMessage = err.response?.data?.error || err.message || 'Registration failed due to unknown error';
+      setError(errorMessage);
+      
+      // Create a more descriptive error for debugging
+      const enhancedError = new Error(errorMessage);
+      enhancedError.name = 'RegistrationError';
+      (enhancedError as any).originalError = err;
+      (enhancedError as any).statusCode = err.response?.status;
+      throw enhancedError;
     } finally {
       setLoading(false);
     }
@@ -136,8 +150,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       setUser(response.data.user);
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to update max lifts');
-      throw err;
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to update max lifts due to unknown error';
+      setError(errorMessage);
+      
+      // Create a more descriptive error for debugging
+      const enhancedError = new Error(errorMessage);
+      enhancedError.name = 'UpdateMaxLiftsError';
+      (enhancedError as any).originalError = err;
+      (enhancedError as any).statusCode = err.response?.status;
+      throw enhancedError;
     } finally {
       setLoading(false);
     }
@@ -155,8 +176,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetUrl: response.data.resetUrl
       };
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to request password reset');
-      throw err;
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to request password reset due to unknown error';
+      setError(errorMessage);
+      
+      // Create a more descriptive error for debugging
+      const enhancedError = new Error(errorMessage);
+      enhancedError.name = 'PasswordResetRequestError';
+      (enhancedError as any).originalError = err;
+      (enhancedError as any).statusCode = err.response?.status;
+      throw enhancedError;
     } finally {
       setLoading(false);
     }
@@ -169,8 +197,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       await axios.post(`${process.env.REACT_APP_API_URL}/api/auth/reset-password`, { token, password });
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to reset password');
-      throw err;
+      const errorMessage = err.response?.data?.error || err.message || 'Failed to reset password due to unknown error';
+      setError(errorMessage);
+      
+      // Create a more descriptive error for debugging
+      const enhancedError = new Error(errorMessage);
+      enhancedError.name = 'PasswordResetError';
+      (enhancedError as any).originalError = err;
+      (enhancedError as any).statusCode = err.response?.status;
+      throw enhancedError;
     } finally {
       setLoading(false);
     }

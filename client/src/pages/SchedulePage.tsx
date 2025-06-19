@@ -99,7 +99,9 @@ const SchedulePage: React.FC = () => {
       // Find the schedule to check if it's Friday or Saturday
       const schedule = schedules.find(s => s.id === scheduleId);
       if (!schedule) {
-        throw new Error('Schedule not found');
+        const error = new Error(`Schedule with ID ${scheduleId} not found in available schedules`);
+        error.name = 'ScheduleNotFoundError';
+        throw error;
       }
       
       // Check if it's Friday or Saturday (5 = Friday, 6 = Saturday)

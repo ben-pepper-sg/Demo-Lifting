@@ -29,7 +29,32 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
-    return Promise.reject(error);
+    
+    // Enhance error information for better debugging
+    if (error.response) {
+      // Server responded with an error status
+      const enhancedError = new Error(
+        error.response.data?.error || 
+        error.response.data?.message || 
+        `HTTP ${error.response.status}: ${error.response.statusText}`
+      );
+      enhancedError.name = 'APIError';
+      (enhancedError as any).status = error.response.status;
+      (enhancedError as any).originalError = error;
+      return Promise.reject(enhancedError);
+    } else if (error.request) {
+      // Request was made but no response received
+      const networkError = new Error('Network error: Unable to reach server');
+      networkError.name = 'NetworkError';
+      (networkError as any).originalError = error;
+      return Promise.reject(networkError);
+    } else {
+      // Something else happened in setting up the request
+      const requestError = new Error(error.message || 'Request setup failed');
+      requestError.name = 'RequestError';
+      (requestError as any).originalError = error;
+      return Promise.reject(requestError);
+    }
   }
 );
 
