@@ -340,13 +340,34 @@ export const getClassDetails = async (req: Request, res: Response) => {
     const weekNumber = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)) % 8 + 1;
     
     // Get workout scheme for the current week and workout type
-    const workoutScheme = await prisma.workoutScheme.findFirst({
+    let workoutScheme = await prisma.workoutScheme.findFirst({
       where: {
         week: weekNumber,
         day: currentDay,
         liftType: schedule.workoutType,
       },
     });
+    
+    // If no workout scheme exists, try creating them
+    if (!workoutScheme) {
+      console.log('No workout scheme found. Attempting to create workout schemes...');
+      try {
+        // Import the ensure workout schemes function
+        const { ensureWorkoutSchemes } = require('../../ensure-workout-schemes.js');
+        await ensureWorkoutSchemes();
+        
+        // Try fetching again after creating
+        workoutScheme = await prisma.workoutScheme.findFirst({
+          where: {
+            week: weekNumber,
+            day: currentDay,
+            liftType: schedule.workoutType,
+          },
+        });
+      } catch (error) {
+        console.error('Failed to create workout schemes:', error);
+      }
+    }
     
     if (!workoutScheme) {
       return res.status(404).json({ error: 'Workout scheme not found for this week and day' });
@@ -544,6 +565,79 @@ export const getClassDetails = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get class details error:', error);
     return res.status(500).json({ error: 'Failed to get class details' });
+  }
+};
+
+// Admin add user to a class
+export const adminAddUserToClass = async (req: AuthRequest, res: Response) => {
+  try {
+    const { scheduleId, userId, workoutType } = req.body;
+    
+    // Validate required fields
+    if (!scheduleId || !userId) {
+      return res.status(400).json({ error: 'Schedule ID and User ID are required' });
+    }
+    
+    // Check if the schedule exists
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+      include: { bookings: true },
+    });
+    
+    if (!schedule) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+    
+    // Check if the user exists
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Check if the user is already booked for this time slot
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        scheduleId: scheduleId,
+        userId: userId,
+      },
+    });
+    
+    if (existingBooking) {
+      return res.status(400).json({ error: 'User is already booked for this class' });
+    }
+    
+    // Check if the class is at capacity
+    if (schedule.currentParticipants >= schedule.capacity) {
+      return res.status(400).json({ error: 'This class is at full capacity' });
+    }
+    
+    // Create the booking
+    const booking = await prisma.booking.create({
+      data: {
+        scheduleId: scheduleId,
+        userId: userId,
+        workoutType: workoutType || schedule.workoutType, // Use passed workout type or default to schedule's type
+      },
+    });
+    
+    // Update the current participants count
+    await prisma.schedule.update({
+      where: { id: scheduleId },
+      data: {
+        currentParticipants: schedule.currentParticipants + 1,
+      },
+    });
+    
+    return res.status(200).json({
+      message: 'User added to class successfully',
+      booking,
+    });
+  } catch (error) {
+    console.error('Admin add user to class error:', error);
+    return res.status(500).json({ error: 'Failed to add user to class' });
   }
 };
 

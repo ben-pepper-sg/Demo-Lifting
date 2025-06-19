@@ -13,11 +13,14 @@
     "test:integration": "jest --testMatch='**/?(*.)+(integration).[jt]s?(x)'",
     "test:unit": "jest --testMatch='**/?(*.)+(unit).[jt]s?(x)'",
     "seed": "ts-node src/utils/seedDatabase.ts",
-    "seed:default-schedules": "ts-node src/scripts/seedDefaultSchedules.ts"
+    "seed:default-schedules": "ts-node src/scripts/seedDefaultSchedules.ts",
+    "ensure-workout-schemes": "node ensure-workout-schemes.js",
+    "prestart": "npm run ensure-workout-schemes"
   },
   "dependencies": {
     "@prisma/client": "^5.5.2",
-
+    "@sentry/node": "^9.30.0",
+    "@sentry/profiling-node": "^9.30.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

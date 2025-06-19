@@ -1,0 +1,43 @@
+
+> tfwmma-lifting-server@1.0.0 prestart
+> npm run ensure-workout-schemes
+
+
+> tfwmma-lifting-server@1.0.0 ensure-workout-schemes
+> node ensure-workout-schemes.js
+
+Ensuring workout schemes for day of week: 3
+Current week number: 4
+Using existing program: 60fc1ecf-9685-4c36-ad05-5f6156123a36
+UPPER workout scheme already exists for today
+LOWER workout scheme already exists for today
+
+> tfwmma-lifting-server@1.0.0 start
+> node dist/index.js
+
+node:events:485
+      throw er; // Unhandled 'error' event
+      ^
+
+Error: listen EADDRINUSE: address already in use :::3001
+    at Server.setupListenHandle [as _listen2] (node:net:1939:16)
+    at listenInCluster (node:net:1996:12)
+    at Server.listen (node:net:2101:7)
+    at Function.listen (/Users/benpepper/lifting/server/node_modules/express/lib/application.js:635:24)
+    at Object.<anonymous> (/Users/benpepper/lifting/server/dist/index.js:61:5)
+    at Module._compile (node:internal/modules/cjs/loader:1734:14)
+    at Object..js (node:internal/modules/cjs/loader:1899:10)
+    at Module.load (node:internal/modules/cjs/loader:1469:32)
+    at Function._load (node:internal/modules/cjs/loader:1286:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+Emitted 'error' event on Server instance at:
+    at emitErrorNT (node:net:1975:8)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  code: 'EADDRINUSE',
+  errno: -48,
+  syscall: 'listen',
+  address: '::',
+  port: 3001
+}
+
+Node.js v23.11.0

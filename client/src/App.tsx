@@ -18,6 +18,9 @@ import AdminPage from './pages/AdminPage';
 import DefaultScheduleAdminPage from './pages/DefaultScheduleAdminPage';
 import SupplementalWorkoutAdminPage from './pages/SupplementalWorkoutAdminPage';
 import LiftProgressPage from './pages/LiftProgressPage';
+import WorkoutTemplatePage from './pages/WorkoutTemplatePage';
+import ErrorTestPage from './pages/ErrorTestPage';
+import FrontendErrorTestPage from './pages/FrontendErrorTestPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
 
@@ -63,6 +66,9 @@ function App() {
           {/* Class views */}
           <Route path="class" element={<ClassViewPage />} />
           <Route path="lifting-class" element={<LiftingClassPage />} />
+          <Route path="figma-test" element={<WorkoutTemplatePage />} />
+          <Route path="5XX-error" element={<ErrorTestPage />} />
+          <Route path="fe-error" element={<FrontendErrorTestPage />} />
           
           {/* Admin routes */}
           <Route path="admin" element={

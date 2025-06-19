@@ -1,0 +1,28 @@
+diff --git a/server/src/routes/schedule.routes.ts b/server/src/routes/schedule.routes.ts
+index 0bf3f41..f95aebb 100644
+--- a/server/src/routes/schedule.routes.ts
++++ b/server/src/routes/schedule.routes.ts
+@@ -10,8 +10,11 @@ import { authenticate, authorizeAdmin, authorizeCoach } from '../middleware/auth
+ import { authenticate, authorizeAdmin, authorizeCoach } from '../middleware/auth.middleware';
+ 
+ const router = express.Router();
+ 
++// Get class details for the next hour - THIS MUST COME FIRST due to Express route ordering
++router.get('/class', getClassDetails);
++
+ // Get all schedules
+ router.get('/', getAllSchedules);
+ 
+ // Create a new schedule (admin/coach only)
+@@ -22,11 +25,8 @@ router.post('/:scheduleId/book', authenticate, bookTimeSlot);
+ 
+ // Cancel a booking
+ router.delete('/:scheduleId/book', authenticate, cancelBooking);
+ 
+-// Get class details for the next hour
+-router.get('/class', getClassDetails);
+-
+ // Delete a schedule (admin/coach only)
+ router.delete('/:id', authenticate, authorizeCoach, deleteSchedule);
+ 
+ export default router;

@@ -7,12 +7,12 @@ const HomePage: React.FC = () => {
 
   return (
     <div>
-      <section className="py-12 bg-gray-50 rounded-lg mb-12">
+      <section className="py-12 bg-gradient-to-br from-green-100 to-pink-100 rounded-lg mb-12">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 leading-tight mb-6">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-green-800 leading-tight mb-6">
             TFW MMA Lifting Program
           </h1>
-          <p className="text-xl text-gray-600 mb-8">
+          <p className="text-xl text-pink-700 mb-8">
             An 8-week progressive lifting program designed to improve strength and performance for mixed martial arts athletes.
           </p>
           {user ? (

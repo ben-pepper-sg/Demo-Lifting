@@ -70,6 +70,7 @@ export const scheduleService = {
     return api.get(endpoint);
   },
   deleteSchedule: (id: string) => api.delete(`/schedule/${id}`),
+  adminAddUserToClass: (data: { scheduleId: string, userId: string, workoutType?: string }) => api.post('/schedule/admin/add-user', data),
 };
 
 // Default schedule services

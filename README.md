@@ -89,6 +89,7 @@ npm run test:unit
 - Automatic page refresh at 5 minutes before the hour and on the hour
 - Supplemental workout rotation system that changes weekly
 - Timezone-aware class scheduling and display
+- Weekly workout schemes that automatically generate if missing
 - Comprehensive test coverage including auto-refresh testing
 
 ## Tech Stack
@@ -155,7 +156,13 @@ npm run test:unit
    - Email: admin@example.com
    - Password: admin123
 
-7. Start the development server:
+7. Ensure workout schemes exist for today:
+   ```bash
+   npm run ensure-workout-schemes
+   ```
+   This creates the weekly workout schemes necessary for displaying lifting weights.
+
+8. Start the development server:
    ```bash
    npm run dev
    ```

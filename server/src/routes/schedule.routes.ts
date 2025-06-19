@@ -6,10 +6,14 @@ import {
   cancelBooking,
   getClassDetails,
   deleteSchedule,
+  adminAddUserToClass,
 } from '../controllers/schedule.controller';
 import { authenticate, authorizeAdmin, authorizeCoach } from '../middleware/auth.middleware';
 
 const router = express.Router();
+
+// Get class details for the next hour - THIS MUST COME FIRST due to Express route ordering
+router.get('/class', getClassDetails);
 
 // Get all schedules
 router.get('/', getAllSchedules);
@@ -23,8 +27,8 @@ router.post('/:scheduleId/book', authenticate, bookTimeSlot);
 // Cancel a booking
 router.delete('/:scheduleId/book', authenticate, cancelBooking);
 
-// Get class details for the next hour
-router.get('/class', getClassDetails);
+// Admin add user to a class (admin only)
+router.post('/admin/add-user', authenticate, authorizeAdmin, adminAddUserToClass);
 
 // Delete a schedule (admin/coach only)
 router.delete('/:id', authenticate, authorizeCoach, deleteSchedule);

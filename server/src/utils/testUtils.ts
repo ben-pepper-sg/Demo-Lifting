@@ -19,13 +19,43 @@ export const mockPrisma = {
     update: jest.fn(),
     delete: jest.fn(),
   },
-  schedule: {
+  workoutScheme: {
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  workoutLog: {
     findUnique: jest.fn(),
     findMany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
   },
+  schedule: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+  defaultSchedule: {
+    findUnique: jest.fn(),
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    upsert: jest.fn(),
+    delete: jest.fn(),
+  },
+  booking: {
+    findFirst: jest.fn(),
+    create: jest.fn(),
+    delete: jest.fn(),
+  },
+  $transaction: jest.fn(),
   $disconnect: jest.fn(),
 };
 

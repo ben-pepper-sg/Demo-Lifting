@@ -5,6 +5,9 @@ cd client
 npm run build
 cd ..
 
-# Start server
+# Ensure workout schemes exist
 cd server
+node ensure-workout-schemes.js
+
+# Start server
 npm start

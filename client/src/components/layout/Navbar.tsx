@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <Disclosure as="nav" className="bg-primary-600 dark:bg-purple-800 shadow-lg">
+    <Disclosure as="nav" className="bg-primary-600 dark:bg-gray-800 shadow-lg">
       {({ open }) => (
         <>
           <div className="container mx-auto px-4">
@@ -92,7 +92,7 @@ const Navbar: React.FC = () => {
                       leaveFrom="transform opacity-100 scale-100"
                       leaveTo="transform opacity-0 scale-95"
                     >
-                      <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-purple-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
+                      <Menu.Items className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none">
                         <Menu.Item>
                           {({ active }) => (
                             <Link

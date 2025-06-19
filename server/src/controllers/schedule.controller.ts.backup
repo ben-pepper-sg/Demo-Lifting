@@ -1,0 +1,521 @@
+import { Request, Response } from 'express';
+import { AuthRequest } from '../types';
+import { prisma } from '../lib/prisma';
+
+// Create and book schedules
+
+// Create a new schedule (coach/admin only)
+export const createSchedule = async (req: AuthRequest, res: Response) => {
+  try {
+    const { date, time, capacity, workoutType } = req.body;
+
+    // Validate required fields
+    if (!date || !time || !workoutType) {
+      return res.status(400).json({ error: 'Date, time, and workout type are required' });
+    }
+
+    // Format the date
+    const scheduleDate = new Date(date);
+    scheduleDate.setHours(0, 0, 0, 0); // Set to midnight for consistent storage
+
+    // Check if a schedule already exists for this date and time
+    const existingSchedule = await prisma.schedule.findFirst({
+      where: {
+        date: scheduleDate,
+        time: time,
+      },
+    });
+
+    if (existingSchedule) {
+      return res.status(400).json({ error: 'A schedule already exists for this date and time' });
+    }
+
+    // Get coach ID from the authenticated user
+    const coachId = req.user.userId;
+
+    // Create the new schedule
+    const schedule = await prisma.schedule.create({
+      data: {
+        date: scheduleDate,
+        time: time,
+        capacity: capacity || 8, // Default to 8 if not specified
+        currentParticipants: 0,
+        coachId: coachId,
+        workoutType: workoutType,
+      },
+    });
+
+    return res.status(201).json({
+      message: 'Schedule created successfully',
+      schedule,
+    });
+  } catch (error) {
+    console.error('Create schedule error:', error);
+    return res.status(500).json({ error: 'Failed to create schedule' });
+  }
+};
+
+// Book a time slot for a user
+export const bookTimeSlot = async (req: AuthRequest, res: Response) => {
+  try {
+    const { scheduleId } = req.params;
+    const userId = req.user.userId;
+    const { workoutType } = req.body; // Optional for Friday/Saturday
+
+    // Check if the schedule exists
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+      include: { bookings: true },
+    });
+
+    if (!schedule) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+
+    // Check if the user is already booked for this time slot
+    const existingBooking = await prisma.booking.findFirst({
+      where: {
+        scheduleId: scheduleId,
+        userId: userId,
+      },
+    });
+
+    if (existingBooking) {
+      return res.status(400).json({ error: 'You are already booked for this time slot' });
+    }
+
+    // Check if the class is at capacity
+    if (schedule.currentParticipants >= schedule.capacity) {
+      return res.status(400).json({ error: 'This class is at full capacity' });
+    }
+
+    // Create the booking
+    const booking = await prisma.booking.create({
+      data: {
+        scheduleId: scheduleId,
+        userId: userId,
+        workoutType: workoutType, // Store workout type selection if provided
+      },
+    });
+
+    // Update the current participants count
+    await prisma.schedule.update({
+      where: { id: scheduleId },
+      data: {
+        currentParticipants: schedule.currentParticipants + 1,
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Time slot booked successfully',
+      booking,
+    });
+  } catch (error) {
+    console.error('Book timeslot error:', error);
+    return res.status(500).json({ error: 'Failed to book time slot' });
+  }
+};
+
+// Cancel a booking
+export const cancelBooking = async (req: AuthRequest, res: Response) => {
+  try {
+    const { scheduleId } = req.params;
+    const userId = req.user.userId;
+
+    // Check if the schedule exists
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+    });
+
+    if (!schedule) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+
+    // Check if the user has a booking for this schedule
+    const booking = await prisma.booking.findFirst({
+      where: {
+        scheduleId: scheduleId,
+        userId: userId,
+      },
+    });
+
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // Delete the booking
+    await prisma.booking.delete({
+      where: { id: booking.id },
+    });
+
+    // Update the current participants count (ensure it doesn't go below 0)
+    await prisma.schedule.update({
+      where: { id: scheduleId },
+      data: {
+        currentParticipants: Math.max(0, schedule.currentParticipants - 1),
+      },
+    });
+
+    return res.status(200).json({
+      message: 'Booking cancelled successfully',
+    });
+  } catch (error) {
+    console.error('Cancel booking error:', error);
+    return res.status(500).json({ error: 'Failed to cancel booking' });
+  }
+};
+
+// Get all schedules
+export const getAllSchedules = async (req: Request, res: Response) => {
+  try {
+    // Allow filtering by specific date (optional)
+    let where = {};
+    
+    if (req.query.date) {
+      const filterDate = new Date(req.query.date as string);
+      filterDate.setHours(0, 0, 0, 0); // Set to midnight
+      
+      where = {
+        date: {
+          equals: filterDate
+        }
+      };
+    }
+    
+    const schedules = await prisma.schedule.findMany({
+      where,
+      include: {
+        coach: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        bookings: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+      orderBy: [
+        { date: 'asc' },
+        { time: 'asc' },
+      ],
+    });
+    
+    return res.status(200).json({ schedules });
+  } catch (error) {
+    console.error('Get schedules error:', error);
+    return res.status(500).json({ error: 'Failed to get schedules' });
+  }
+};
+
+// Get class details for the current or upcoming hour
+export const getClassDetails = async (req: Request, res: Response) => {
+  try {
+    // Get current date and time
+    const now = new Date();
+    const currentDay = now.getDay();
+    const currentHour = now.getHours();
+    const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // If hour is specified in the query, use that instead
+    let targetHour = currentHour;
+    if (req.query.hour) {
+      targetHour = parseInt(req.query.hour as string, 10);
+    }
+    
+    // Calculate the target time string (padded with leading zero)
+    const paddedHour = String(targetHour).padStart(2, '0');
+    const targetTime = `${paddedHour}:00`;
+    
+    // If no specific hour is requested, find either the current hour's class
+    // or the next upcoming class for today
+    let schedule;
+    
+    if (req.query.hour) {
+      // Find the specific requested hour
+      schedule = await prisma.schedule.findFirst({
+        where: {
+          date: { equals: currentDate },
+          time: targetTime,
+        },
+        include: {
+          bookings: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  maxBench: true,
+                  maxOHP: true,
+                  maxSquat: true,
+                  maxDeadlift: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    } else {
+      // Try current hour first
+      schedule = await prisma.schedule.findFirst({
+        where: {
+          date: { equals: currentDate },
+          time: targetTime,
+        },
+        include: {
+          bookings: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  firstName: true,
+                  lastName: true,
+                  maxBench: true,
+                  maxOHP: true,
+                  maxSquat: true,
+                  maxDeadlift: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      
+      // If no current hour class, find the next upcoming class today
+      if (!schedule) {
+        schedule = await prisma.schedule.findFirst({
+          where: {
+            date: { equals: currentDate },
+            time: { gt: targetTime },  // Find classes later today
+          },
+          orderBy: { time: 'asc' },    // Get the next earliest one
+          include: {
+            bookings: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    maxBench: true,
+                    maxOHP: true,
+                    maxSquat: true,
+                    maxDeadlift: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+    }
+    
+    if (!schedule) {
+      return res.status(404).json({ error: 'No class scheduled for the current or upcoming hour' });
+    }
+    
+    // Get current week number (1-8)
+    // Assuming week 1 starts from a specific date stored in config
+    // For now, let's assume it's the current week number of the year mod 8 + 1
+    const weekNumber = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / (7 * 24 * 60 * 60 * 1000)) % 8 + 1;
+    
+    // Get workout scheme for the current week and workout type
+    const workoutScheme = await prisma.workoutScheme.findFirst({
+      where: {
+        week: weekNumber,
+        day: currentDay,
+        liftType: schedule.workoutType,
+      },
+    });
+    
+    if (!workoutScheme) {
+      return res.status(404).json({ error: 'Workout scheme not found for this week and day' });
+    }
+    
+    // Get weekly supplemental workouts based on the current week number
+    // This ensures the same supplemental workouts are used all week, but change every Monday
+    
+    // Find the start of the current week (Monday)
+    const currentDate2 = new Date();
+    const daysSinceMonday = (currentDate2.getDay() + 6) % 7; // Convert Sunday=0 to Monday=0
+    const startOfWeek = new Date(currentDate2);
+    startOfWeek.setDate(currentDate2.getDate() - daysSinceMonday);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    // Use the Monday date as a seed for selecting supplemental workouts
+    // This ensures consistency within the week
+    const mondayTimestamp = startOfWeek.getTime();
+    const weekIdentifier = Math.floor(mondayTimestamp / (7 * 24 * 60 * 60 * 1000));
+    
+    // Get appropriate supplemental workouts for this week and workout type
+    const supplementalWorkouts = await prisma.supplementalWorkout.findMany({
+      where: {
+        category: schedule.workoutType
+      },
+      include: {
+        exercises: true
+      },
+      orderBy: {
+        id: 'asc'
+      }
+    });
+    
+    // Add Leg Circuit Complex to lower body workout if it exists
+    if (schedule.workoutType === 'LOWER') {
+      const legCircuitWorkout = await prisma.supplementalWorkout.findFirst({
+        where: {
+          name: 'Leg Circuit Complex'
+        },
+        include: {
+          exercises: true
+        }
+      });
+      
+      if (legCircuitWorkout) {
+        console.log('Found Leg Circuit Complex workout - adding to supplementals');
+        // Add to beginning of array if not already present
+        const workoutExists = supplementalWorkouts.some(w => w.id === legCircuitWorkout.id);
+        if (!workoutExists) {
+          supplementalWorkouts.unshift(legCircuitWorkout);
+        }
+      }
+    }
+    
+    // Select 2-3 supplemental workouts based on the week number
+    // Use modulo to cycle through all available supplemental workouts over time
+    // This ensures every week has different supplemental workouts
+    const supplementals = [];
+    if (supplementalWorkouts.length > 0) {
+      // Always include Leg Circuit Complex for LOWER if it exists (should be first)
+      if (schedule.workoutType === 'LOWER' && supplementalWorkouts[0]?.name === 'Leg Circuit Complex') {
+        supplementals.push(supplementalWorkouts[0]);
+      }
+      
+      // Add more workouts up to 3 total
+      const remainingWorkouts = schedule.workoutType === 'LOWER' && supplementalWorkouts[0]?.name === 'Leg Circuit Complex' 
+        ? supplementalWorkouts.slice(1) 
+        : supplementalWorkouts;
+        
+      const numWorkouts = Math.min(3 - supplementals.length, remainingWorkouts.length);
+      for (let i = 0; i < numWorkouts; i++) {
+        const index = (weekIdentifier + i) % remainingWorkouts.length;
+        supplementals.push(remainingWorkouts[index]);
+      }
+    }
+    
+    // Prepare class details with participant information
+    const participants = schedule.bookings.map((booking) => {
+      const user = booking.user;
+      
+      // Calculate weights based on the user's max lifts and workout percentages
+      // This calculation depends on the day of the week and workout type
+      let liftWeights = {};
+      
+      if (schedule.workoutType === 'UPPER') {
+        if (user.maxBench && user.maxOHP) {
+          // Calculate for each percentage in the workout scheme
+          const benchWeights = workoutScheme.percentages.map(percentage => {
+            const weight = user.maxBench * (percentage / 100);
+            return Math.round(weight / 5) * 5; // Round to nearest 5
+          });
+          
+          const ohpWeights = workoutScheme.percentages.map(percentage => {
+            const weight = user.maxOHP * (percentage / 100);
+            return Math.round(weight / 5) * 5; // Round to nearest 5
+          });
+          
+          liftWeights = {
+            bench: benchWeights,
+            ohp: ohpWeights,
+          };
+        }
+      } else if (schedule.workoutType === 'LOWER') {
+        if (user.maxSquat && user.maxDeadlift) {
+          // Calculate for each percentage in the workout scheme
+          const squatWeights = workoutScheme.percentages.map(percentage => {
+            const weight = user.maxSquat * (percentage / 100);
+            return Math.round(weight / 5) * 5; // Round to nearest 5
+          });
+          
+          const deadliftWeights = workoutScheme.percentages.map(percentage => {
+            const weight = user.maxDeadlift * (percentage / 100);
+            return Math.round(weight / 5) * 5; // Round to nearest 5
+          });
+          
+          liftWeights = {
+            squat: squatWeights,
+            deadlift: deadliftWeights,
+          };
+        }
+      }
+      
+      return {
+        userId: user.id,
+        firstName: user.firstName,
+        lastInitial: user.lastName.charAt(0),
+        weights: liftWeights,
+      };
+    });
+    
+    return res.status(200).json({
+      class: {
+        id: schedule.id,
+        date: schedule.date,
+        time: schedule.time,
+        workoutType: schedule.workoutType,
+        participants,
+        scheme: {
+          sets: workoutScheme.sets,
+          reps: workoutScheme.reps,
+          percentages: workoutScheme.percentages,
+          restTime: workoutScheme.restTime,
+        },
+        supplementalWorkouts: supplementals,
+      },
+    });
+  } catch (error) {
+    console.error('Get class details error:', error);
+    return res.status(500).json({ error: 'Failed to get class details' });
+  }
+};
+
+// Delete a schedule (admin/coach only)
+export const deleteSchedule = async (req: Request, res: Response) => {
+  try {
+    const scheduleId = req.params.id;
+    
+    // Check if the schedule exists
+    const schedule = await prisma.schedule.findUnique({
+      where: { id: scheduleId },
+      include: { bookings: true }
+    });
+    
+    if (!schedule) {
+      return res.status(404).json({ error: 'Schedule not found' });
+    }
+    
+    // Delete all bookings related to this schedule
+    if (schedule.bookings.length > 0) {
+      await prisma.booking.deleteMany({
+        where: {
+          scheduleId: scheduleId
+        }
+      });
+    }
+    
+    // Delete the schedule
+    await prisma.schedule.delete({
+      where: {
+        id: scheduleId
+      }
+    });
+    
+    return res.status(200).json({ message: 'Schedule deleted successfully' });
+  } catch (error) {
+    console.error('Delete schedule error:', error);
+    return res.status(500).json({ error: 'Failed to delete schedule' });
+  }
+};

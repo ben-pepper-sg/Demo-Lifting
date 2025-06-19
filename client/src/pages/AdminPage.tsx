@@ -4,6 +4,7 @@ import { userService, scheduleService, authService } from '../services/api';
 // Error monitoring removed
 import { debounce } from '../utils/helpers';
 import { formatDate as formatDateUtil } from '../utils/dateUtils';
+import AddUserToClassModal from '../components/admin/AddUserToClassModal';
 
 type User = {
   id: string;
@@ -54,6 +55,10 @@ const AdminPage: React.FC = () => {
   const [isAddingUser, setIsAddingUser] = useState<boolean>(false);
   const [addUserSuccess, setAddUserSuccess] = useState<string>('');
   const [addUserError, setAddUserError] = useState<string>('');
+  
+  // Add user to class modal state
+  const [showAddToClassModal, setShowAddToClassModal] = useState<boolean>(false);
+  const [selectedSchedule, setSelectedSchedule] = useState<any>(null);
   
   const [scheduleForm, setScheduleForm] = useState({
     date: '',
@@ -124,7 +129,24 @@ const AdminPage: React.FC = () => {
         endDate: endDate.toISOString(),
       });
       
-      setSchedules(response.data.schedules);
+      // Include full booking details with user info
+      const schedulesWithDetails = await Promise.all(
+        response.data.schedules.map(async (schedule: any) => {
+          try {
+            // Get detailed class information with participants
+            const classDetails = await scheduleService.getClassDetails(`/schedule/class?hour=${schedule.time.split(':')[0]}`);
+            return {
+              ...schedule,
+              bookingsDetail: classDetails.data.class.participants || [],
+            };
+          } catch (err) {
+            console.error(`Failed to get details for schedule ${schedule.id}:`, err);
+            return schedule;
+          }
+        })
+      );
+      
+      setSchedules(schedulesWithDetails);
     } catch (err: any) {
       const errorMessage = err.response?.data?.error || 'Failed to fetch schedules';
       setErrorSchedules(errorMessage);
@@ -133,6 +155,18 @@ const AdminPage: React.FC = () => {
       setIsLoadingSchedules(false);
     }
   }, []);
+  
+  // Handle opening add user to class modal
+  const handleOpenAddToClassModal = (schedule: any) => {
+    setSelectedSchedule(schedule);
+    setShowAddToClassModal(true);
+  };
+  
+  // Handle closing add user to class modal
+  const handleCloseAddToClassModal = () => {
+    setSelectedSchedule(null);
+    setShowAddToClassModal(false);
+  };
   
   // Handle schedule deletion
   const handleDeleteSchedule = async (id: string) => {
@@ -440,32 +474,38 @@ return (
                   <tbody className="bg-white divide-y divide-gray-200">
                     {schedules.map((schedule) => (
                       <tr key={schedule.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">{formatDate(schedule.date)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">{formatTime(schedule.time)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            schedule.workoutType === 'UPPER'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-green-100 text-green-800'
-                          }`}>
-                            {schedule.workoutType === 'UPPER' ? 'Upper' : 'Lower'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {schedule.coach?.firstName} {schedule.coach?.lastName}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {schedule.currentParticipants}/{schedule.capacity}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          <button
+                      <td className="px-6 py-4 whitespace-nowrap">{formatDate(schedule.date)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">{formatTime(schedule.time)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      schedule.workoutType === 'UPPER'
+                      ? 'bg-blue-100 text-blue-800'
+                      : 'bg-green-100 text-green-800'
+                      }`}>
+                      {schedule.workoutType === 'UPPER' ? 'Upper' : 'Lower'}
+                      </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                      {schedule.coach?.firstName} {schedule.coach?.lastName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                      {schedule.currentParticipants}/{schedule.capacity}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <button
+                      className="text-indigo-600 hover:text-indigo-900 mr-3"
+                      onClick={() => handleOpenAddToClassModal(schedule)}
+                      >
+                      Add User
+                      </button>
+                        <button
                             className="text-red-600 hover:text-red-900"
-                            onClick={() => handleDeleteSchedule(schedule.id)}
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
+                              onClick={() => handleDeleteSchedule(schedule.id)}
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
                     ))}
                   </tbody>
                 </table>
@@ -919,6 +959,16 @@ return (
             </div>
           </div>
         </div>
+      )}
+      
+      {/* Add User to Class Modal */}
+      {showAddToClassModal && selectedSchedule && (
+        <AddUserToClassModal
+          schedule={selectedSchedule}
+          users={users}
+          onClose={handleCloseAddToClassModal}
+          onSuccess={fetchSchedules}
+        />
       )}
     </div>
   );
