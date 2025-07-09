@@ -1,7 +1,10 @@
 import { login } from '../controllers/auth.controller';
-import { mockPrisma } from '../utils/testUtils';
+import { createMockPrisma } from './helpers/testDatabase';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+
+// Create mock prisma instance
+const mockPrisma = createMockPrisma();
 
 // Mock the required modules
 jest.mock('jsonwebtoken');
