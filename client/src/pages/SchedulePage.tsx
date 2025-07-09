@@ -99,9 +99,9 @@ const SchedulePage: React.FC = () => {
       // Find the schedule to check if it's Friday or Saturday
       const schedule = schedules.find(s => s.id === scheduleId);
       if (!schedule) {
-        const error = new Error(`Schedule with ID ${scheduleId} not found in available schedules`);
-        error.name = 'ScheduleNotFoundError';
-        throw error;
+        console.error(`Schedule with ID ${scheduleId} not found in available schedules`);
+        setError(`Schedule not found. Please refresh the page and try again.`);
+        return;
       }
       
       // Check if it's Friday or Saturday (5 = Friday, 6 = Saturday)
@@ -228,7 +228,7 @@ const SchedulePage: React.FC = () => {
   };
 
   const isUserBooked = (schedule: Schedule) => {
-    return schedule.bookings.some(booking => booking.user?.id === user?.id);
+    return schedule.bookings?.some(booking => booking.user?.id === user?.id) ?? false;
   };
 
   // Format date for display
