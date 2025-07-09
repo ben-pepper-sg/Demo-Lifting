@@ -228,7 +228,7 @@ const SchedulePage: React.FC = () => {
   };
 
   const isUserBooked = (schedule: Schedule) => {
-    return schedule.bookings.some(booking => booking.user?.id === user?.id);
+    return schedule.bookings?.some(booking => booking.user?.id === user?.id) ?? false;
   };
 
   // Format date for display
