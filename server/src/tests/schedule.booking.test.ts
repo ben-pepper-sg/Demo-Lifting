@@ -6,24 +6,27 @@ import { PrismaClient } from '@prisma/client';
 import { Request, Response } from 'express';
 import { bookTimeSlot, cancelBooking } from '../controllers/schedule.controller';
 
-// Mock Prisma
-const mockPrisma = {
-  schedule: {
-    findUnique: jest.fn(),
-    update: jest.fn(),
-  },
-  booking: {
-    findFirst: jest.fn(),
-    create: jest.fn(),
-    delete: jest.fn(),
-  },
-  $transaction: jest.fn(),
-};
-
-// Mock the prisma instance
+// Mock the prisma instance first
 jest.mock('../lib/prisma', () => ({
-  prisma: mockPrisma,
+  prisma: {
+    schedule: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+    booking: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      delete: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  },
 }));
+
+import { createMockPrisma } from './helpers/testDatabase';
+import { prisma } from '../lib/prisma';
+
+// Cast to mock for type safety
+const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 describe('Schedule Controller Tests', () => {
   let mockRequest: Partial<Request>;

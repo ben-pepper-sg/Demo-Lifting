@@ -1,14 +1,13 @@
 import express from 'express';
 import request from 'supertest';
 import bcrypt from 'bcrypt';
-import authRoutes from '../../routes/auth.routes';
-import { mockPrisma, createTestApp } from '../../utils/testUtils';
+import { createTestApp, mockPrisma } from '../helpers/testApp';
 
 describe('Auth API Routes', () => {
   let app: express.Application;
 
   beforeAll(() => {
-    app = createTestApp(authRoutes, 'auth');
+    app = createTestApp();
   });
 
   beforeEach(() => {
@@ -38,7 +37,7 @@ describe('Auth API Routes', () => {
       });
 
       const res = await request(app)
-        .post('/register')
+        .post('/api/auth/register')
         .send(userData);
 
       expect(res.status).toBe(201);

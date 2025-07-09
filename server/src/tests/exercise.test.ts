@@ -7,11 +7,11 @@ import { authenticate, authorizeAdmin } from '../middleware/auth.middleware';
 
 // Mock the auth middleware for tests
 jest.mock('../middleware/auth.middleware', () => ({
-  authenticate: (req, res, next) => {
+  authenticate: (req: any, res: any, next: any) => {
     req.user = { userId: 'admin-test-id', role: 'ADMIN' };
     next();
   },
-  authorizeAdmin: (req, res, next) => {
+  authorizeAdmin: (req: any, res: any, next: any) => {
     next();
   }
 }));
