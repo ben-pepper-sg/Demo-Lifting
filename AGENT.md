@@ -26,7 +26,7 @@ When addressing a Sentry issue, follow these guidelines
 - Create a new branch for each Sentry issue
 - Name the branch with the Sentry issue number and a brief description
 - Write a failing unit test to show you understands the issue.
-- apply the fix without changing the test. You can NO Tchange the test to make it passing. 
+- apply the fix without changing the test. You can NOT change the test to make it passing. 
 - Include a link to the Sentry issue in the PR description
 - Create a PR using the GitHub Cli using the gh commands `gh pr create` 
 - When create a GitHub PR be sure to include all the items below - to ensure it's formatted correctly use the flag --body-file with a temp pr-description.md file that isn't commited.

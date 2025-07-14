@@ -20,6 +20,7 @@ import SupplementalWorkoutAdminPage from './pages/SupplementalWorkoutAdminPage';
 import LiftProgressPage from './pages/LiftProgressPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import AdminRoute from './components/auth/AdminRoute';
+import NotFoundPage from './pages/NotFoundPage';
 
 function App() {
   return (
@@ -76,12 +77,15 @@ function App() {
             </AdminRoute>
           } />
           <Route path="admin/supplemental-workouts" element={
-            <AdminRoute>
-              <SupplementalWorkoutAdminPage />
-            </AdminRoute>
+             <AdminRoute>
+               <SupplementalWorkoutAdminPage />
+             </AdminRoute>
           } />
+          
+          {/* 404 Route - must be last */}
+          <Route path="*" element={<NotFoundPage />} />
           </Route>
-        </Routes>
+         </Routes>
       </ThemeProvider>
     </AuthProvider>
   );

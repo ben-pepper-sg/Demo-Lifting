@@ -5,7 +5,7 @@ import { PrismaClient } from '@prisma/client';
 
 // Mock PrismaClient
 jest.mock('@prisma/client', () => {
-  const mockPrismaClient = {
+  const mockPrismaClient: any = {
     schedule: {
       findUnique: jest.fn(),
       delete: jest.fn(),
@@ -13,7 +13,7 @@ jest.mock('@prisma/client', () => {
     booking: {
       deleteMany: jest.fn(),
     },
-    $transaction: jest.fn((callback) => callback(mockPrismaClient)),
+    $transaction: jest.fn((callback: any) => callback(mockPrismaClient)),
     $disconnect: jest.fn(),
   };
   return {
@@ -26,12 +26,12 @@ jest.mock('jsonwebtoken');
 
 // Mock authentication middleware
 jest.mock('../middleware/auth.middleware', () => ({
-  authenticate: (req, res, next) => {
+  authenticate: (req: any, res: any, next: any) => {
     req.user = { userId: 'admin123', role: 'ADMIN' };
     next();
   },
-  authorizeAdmin: (req, res, next) => next(),
-  authorizeCoach: (req, res, next) => next(),
+  authorizeAdmin: (req: any, res: any, next: any) => next(),
+  authorizeCoach: (req: any, res: any, next: any) => next(),
 }));
 
 // Import controller directly to avoid Express router issues in testing
