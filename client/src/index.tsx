@@ -4,7 +4,38 @@ import './styles/index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { BrowserRouter } from 'react-router-dom';
-// Error monitoring removed
+import * as Sentry from "@sentry/react";
+
+// Initialize Sentry
+const sentryDsn = process.env.REACT_APP_SENTRY_DSN;
+console.log('Sentry DSN configured:', sentryDsn ? 'Yes' : 'No');
+console.log('Sentry DSN (first 30 chars):', sentryDsn ? sentryDsn.substring(0, 30) + '...' : 'Not set');
+console.log('Raw environment variable:', process.env.REACT_APP_SENTRY_DSN);
+console.log('All REACT_APP environment variables:', Object.keys(process.env).filter(key => key.startsWith('REACT_APP')));
+
+if (sentryDsn && sentryDsn !== 'your-sentry-dsn-here') {
+  Sentry.init({
+    dsn: sentryDsn,
+    integrations: [
+      Sentry.browserTracingIntegration(),
+      Sentry.replayIntegration({
+        maskAllText: false,
+        blockAllMedia: false,
+      }),
+    ],
+    tracesSampleRate: 1.0,
+    replaysSessionSampleRate: 0.1,
+    replaysOnErrorSampleRate: 1.0,
+    debug: true, // Enable debug mode to see Sentry logs
+    beforeSend(event) {
+      console.log('Sentry event being sent:', event);
+      return event;
+    },
+  });
+  console.log('Sentry initialized successfully');
+} else {
+  console.warn('Sentry not initialized: DSN not configured or using placeholder value');
+}
 
 // Global error handlers for better error reporting
 window.addEventListener('error', (event) => {
@@ -15,6 +46,13 @@ window.addEventListener('error', (event) => {
     colno: event.colno,
     error: event.error
   });
+  
+  if (sentryDsn && sentryDsn !== 'your-sentry-dsn-here') {
+    console.log('Capturing error to Sentry:', event.error);
+    Sentry.captureException(event.error);
+  } else {
+    console.log('Sentry not configured, error not sent');
+  }
 });
 
 window.addEventListener('unhandledrejection', (event) => {
@@ -29,42 +67,49 @@ window.addEventListener('unhandledrejection', (event) => {
       event.reason.message = event.reason.message || 'Promise rejected without specific error message';
     }
   }
+  
+  if (sentryDsn && sentryDsn !== 'your-sentry-dsn-here') {
+    console.log('Capturing promise rejection to Sentry:', event.reason);
+    Sentry.captureException(event.reason);
+  } else {
+    console.log('Sentry not configured, promise rejection not sent');
+  }
 });
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
-// Create a custom error boundary that doesn't depend on Sentry
-class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
-  constructor(props: {children: React.ReactNode}) {
-    super(props);
-    this.state = { hasError: false };
+// Use Sentry ErrorBoundary
+const SentryErrorBoundary = Sentry.withErrorBoundary(
+  ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  {
+    fallback: ({ error, resetError }) => (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong!</h1>
+          <p className="text-gray-600 mb-4">An error occurred and has been reported.</p>
+          <button
+            onClick={resetError}
+            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Try again
+          </button>
+        </div>
+      </div>
+    ),
+    beforeCapture: (scope) => {
+      scope.setTag("errorBoundary", true);
+    },
   }
-
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true };
-  }
-
-  componentDidCatch(error: any, errorInfo: any) {
-    console.error('Application error:', error, errorInfo);
-    // Error logging removed
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <p>An error has occurred. Please refresh the page.</p>;
-    }
-    return this.props.children;
-  }
-}
+);
 
 root.render(
   <React.StrictMode>
-    <ErrorBoundary>
+    <SentryErrorBoundary>
       <BrowserRouter>
         <App />
       </BrowserRouter>
-    </ErrorBoundary>
+    </SentryErrorBoundary>
   </React.StrictMode>
 );
 
